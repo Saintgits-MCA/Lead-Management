@@ -1,0 +1,627 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRM Software</title>
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/all.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/bootstrap-icons.css' %}">
+    <link rel="icon" href="{%static 'images/nexgen_crm2.png'%}">
+    <link rel="stylesheet" href="{% static 'css/remixicon.css' %}">
+
+    <style>
+        .page-title { font-size: 22px; font-weight: 600; margin-left: 10px; }
+        .breadcrumb-text { font-size: 12px; color: #888; margin-left: 10px; }
+        body {
+            background: #f4f6fb;
+            font-family: "Inter", sans-serif;
+        }
+       
+        
+html, body {
+    overflow-x: visible;       /* or clip */
+}
+        /* =======================
+           SIDEBAR
+        ======================== */
+        .sidebar {
+            width: 250px;
+            height: 100vh;
+            background: #0B0F3B;
+            position: fixed;
+            top: 0;
+            left: 0;
+            padding: 25px 15px;
+            color: #fff;
+            overflow-y: auto;
+            box-shadow: 4px 0 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .sidebar .logo {
+            font-size: 26px;
+            font-weight: 700;
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-link-custom {
+            display: flex;
+            align-items: center;
+            padding: 12px 14px;
+            color: #dfe6ff;
+            border-radius: 10px;
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            transition: all 0.25s;
+        }
+
+        .nav-link-custom i {
+            font-size: 18px;
+            margin-right: 12px;
+            opacity: 0.8;
+        }
+
+        .nav-link-custom:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateX(4px);
+        }
+
+        .nav-link-custom.active {
+            background: #ffffff16;
+            font-weight: 600;
+            position: relative;
+        }
+
+        /* Left highlight bar */
+        .nav-link-custom.active::before {
+            content: "";
+            width: 5px;
+            height: 70%;
+            background: #4de4ff;
+            position: absolute;
+            left: -10px;
+            top: 15%;
+            border-radius: 10px;
+        }
+
+        textarea{
+            resize:none;
+        }
+        /* =======================
+           MAIN CONTENT
+        ======================== */
+        .main {
+            margin-left: 250px;
+            min-height: 100vh;
+        }
+
+
+        /* =======================
+           TOPBAR
+        ======================== */
+        .topbar {
+            height: 72px;
+            background: #ffffff;
+            padding: 0 25px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #e8e8e8;
+            position: sticky;
+            top: 0;
+            z-index: 200;
+            box-shadow: 0px 3px 10px rgba(0,0,0,0.05);
+        }
+
+        .topbar .left-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .topbar .right-icons i {
+            font-size: 20px;
+            margin-right: 18px;
+            color: #1b1717ff;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .topbar .right-icons i:hover {
+            color: #111;
+            transform: scale(1.15);
+        }
+
+        /* Profile image */
+        .profile-img {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid #eee;
+            object-fit: cover;
+            transition: .2s;
+        }
+
+        .profile-img:hover {
+            transform: scale(1.08);
+        }
+
+        .dropdown-menu {
+            font-size: 14px;
+        }
+
+
+        /* =======================
+           RESPONSIVE
+        ======================== */
+        @media (max-width: 991px) {
+            .sidebar {
+                left: -260px;
+                transition: 0.3s;
+            }
+
+            .sidebar.active {
+                left: 0;
+            }
+
+            .main {
+                margin-left: 0;
+            }
+
+            .menu-toggle-btn {
+                display: inline-block !important;
+            }
+        }
+
+        .menu-toggle-btn {
+            display: none;
+            font-size: 24px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+.dropdown-item.logout {
+    color: #f80c0cff !important;           /* White text */
+}
+
+.nav-link-custom.logout i {
+    color: #ffffff !important;           /* White icon */
+}
+li .dropdown-item:hover
+{   background:#1949ceff;
+    color:#ffffff;
+}
+
+.dropdown-item:hover i
+{   
+    color:#ffffff;
+}
+
+.dropdown-item.logout:hover {
+    background: #dc3545 !important;      /* Red background */
+    color: #ffffff !important;
+}
+
+.nav-link-custom.logout:hover i,
+.dropdown-item.logout:hover i {
+    color: #ffffff !important;           /* Icon white */
+}
+
+
+/* Active (pressed) state red */
+.dropdown-item.logout:active {
+    background: #dc3545 !important;
+    color: #ffffff !important;
+}
+/* ========================
+   Toast Messages (Top-Right)
+   ======================== */
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 5000;
+}
+
+.custom-toast {
+    min-width: 260px;
+    padding: 14px 20px;
+    margin-bottom: 12px;
+    border-radius: 10px;
+    color: #fff;
+    font-size: 0.95rem;
+    font-weight: 500;
+    box-shadow: 0px 5px 14px rgba(0,0,0,0.15);
+    animation: slideIn 0.5s ease-out, fadeOut 0.5s ease-out 3s forwards;
+}
+
+/* Success message */
+.custom-toast.success {
+    background: #28a745;
+}
+
+/* Error message */
+.custom-toast.error {
+    background: #dc3545;
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(40px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; transform: translateX(0); }
+    to   { opacity: 0; transform: translateX(40px); }
+}
+/* ============= COLLAPSIBLE MENU ============= */
+.sidebar .menu-group {
+    margin-bottom: 10px;
+}
+
+.menu-title {
+    display: flex;
+    align-items: center;
+    color: #dfe6ff;
+    padding: 12px 14px;
+    font-size: 15px;
+    font-weight: 500;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: 0.25s;
+}
+
+.menu-title i:first-child {
+    font-size: 18px;
+    margin-right: 12px;
+    opacity: 0.9;
+}
+
+.menu-title .arrow {
+    margin-left: auto;
+    transition: 0.3s;
+}
+
+.menu-title.active {
+    background: #ffffff16;
+}
+
+.menu-title.active .arrow {
+    transform: rotate(90deg);
+}
+
+.sub-menu {
+    background: #ffffff10;
+    border-radius: 10px;
+    margin-top: 6px;
+    padding: 8px 0;
+    display: none;
+}
+
+.sub-menu a {
+    display: flex;
+    align-items: center;
+    padding: 8px 18px;
+    font-size: 14px;
+    color: #dfe6ff;
+    text-decoration: none;
+    transition: 0.2s;
+}
+
+.sub-menu a:hover {
+    background: rgba(255,255,255,0.12);
+    transform: translateX(4px);
+}
+
+.sub-menu a i {
+    font-size: 10px;
+    margin-right: 10px;
+}
+
+/* =====================================================
+   SIDEBAR MOBILE OVERLAY FIX
+===================================================== */
+
+@media (max-width: 991px) {
+
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: -260px;
+        height: 100vh;
+        z-index: 3000;
+    }
+
+    .sidebar.active {
+        left: 0;
+    }
+
+    .main {
+        margin-left: 0 !important;
+    }
+}
+
+/* Lock background scroll when sidebar open */
+body.sidebar-open {
+    overflow: hidden;
+}
+
+.sidebar::-webkit-scrollbar
+{
+    width:1px;
+}
+.sidebar {
+    width: 250px;
+    transition: width 0.3s ease;  /* smooth collapse/expand */
+}
+
+/* NEW - Collapsed class */
+.sidebar.collapsed {
+    width: 0px;           /* only icons visible */
+    padding: 25px 10px;
+    visibility:hidden;
+}
+
+/* Hide text when collapsed */
+.sidebar.collapsed .logo span,
+.sidebar.collapsed .nav-link-custom span,
+.sidebar.collapsed .menu-title span {
+    opacity: 0;
+    width: 0;
+    overflow: hidden;
+    margin-left: 0;
+}
+
+/* Adjust main content margin when collapsed */
+.main {
+    margin-left: 250px;
+    transition: margin-left 0.3s ease;
+}
+
+.main::after {
+    margin-left: 0px;
+    transition: margin-left 0.3s ease;
+}
+
+.sidebar.collapsed ~ .main {
+    margin-left: 70px;
+}
+
+/* Rotate toggle icon when collapsed */
+.sidebar.collapsed + .topbar .collapse-toggle-btn i {
+    transform: rotate(180deg);
+}
+@media (min-width: 1000px)
+{
+    .sidebar.collapsed ~ .main {
+    margin-left: 19px;
+}
+}
+    </style>
+</head>
+
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar" id="sidebar">
+    <div class="logo ms-2">
+        <img src="{% static 'images/nexgen_crm2.png' %}" width="120" class="rounded-1">
+        <span>Client</span>
+    </div>
+
+    <!-- Dashboard -->
+    <a href="{% url 'dashboard' %}"
+       class="nav-link-custom {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+        <i class="fas fa-tachometer"></i> Dashboard
+    </a>
+
+    <!-- Employee -->
+    <a href="{% url 'employee_list' %}"
+       class="nav-link-custom {% if request.resolver_match.url_name == 'employee_list' or request.resolver_match.url_name == 'employee_create' %}active{% endif %}">
+        <i class="bi bi-people-fill"></i> Employees
+    </a>
+    
+     <a href="{%url 'leads'%}"class="nav-link-custom {% if request.resolver_match.url_name == 'leads' %}active{% endif %}">
+        <i class="ri-road-map-fill fs-5"></i>Add Leads
+    </a>
+
+    {% comment %} <!-- Task Dropdown -->
+    <div class="menu-group">
+        <div class="menu-title">
+            <i class="bi bi-check-circle-fill"></i> Task
+            <i class="bi bi-chevron-right arrow"></i>
+        </div>
+
+        <div class="sub-menu">
+            <a href="#"><i class="bi bi-check-circle-fill fs-6"></i> My Tasks</a>
+            <a href="#"><i class="fas fa-check text-light  rounded-circle fs-6 fw-bolder"></i> Completed</a>
+            <a href="#"><i class="bi bi-clock-fill fs-6"></i> Pending</a>
+        </div>
+    </div> {% endcomment %}
+    
+<a href="{%url 'followup'%}"class="nav-link-custom {% if request.resolver_match.url_name == 'followup' %}active{% endif %}">
+    <i class="fas fs-5 fa-plus-circle"></i>Add Followup
+</a>
+
+    <!-- Leads Dropdown -->
+    <div class="menu-group">
+        <div class="menu-title">
+            <i class="fas fa-list"></i> Lead Settings
+            <i class="bi bi-chevron-right arrow"></i>
+        </div>
+
+        <div class="sub-menu">
+<li type="none" class="nav-item">
+    <a href="{% url 'lead_source_list' %}" 
+       class="nav-link-custom {% if request.resolver_match.url_name == 'lead_source_list' or request.resolver_match.url_name == 'lead_source_edit' or request.resolver_match.url_name == 'lead_source_create' %}active{% endif %}">
+        <i class="bi bi-diagram-2-fill fs-5"></i>
+        <span>Lead Source</span>
+    </a>
+</li>     
+<li type="none" class="nav-item">
+    <a href="{%url 'enquiry_category_list'%}" class="nav-link-custom {% if  request.resolver_match.url_name == 'enquiry_category_list'%}active{% endif %}"><i class="fas fa-question fs-5 me-3"></i>  Enquiry For</a>
+</li>
+<li type="none" class="nav-item">
+<a href="{% url 'product_master' %}" class="nav-link-custom {% if  request.resolver_match.url_name == 'product_master'%}active{% endif %}">
+    <i class="fas fa-boxes fs-5"></i> Product Master</a>
+</li>
+        </div>
+    </div>
+    
+<a href="{% url 'document_master' %}"
+       class="nav-link-custom {% if request.resolver_match.url_name == 'document_master' %}active{% endif %}">
+        <i class="fas fa-file-text"></i> Document Master
+    </a>
+    <!-- Reminder -->
+    <a href="{% url 'reminder_list' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'reminder_list' %}active{% endif %}">
+        <i class="bi bi-bell-fill"></i> Reminder
+    </a>
+
+    <!-- Logout -->
+    <a href="{%url 'terms_conditions'%}" class="nav-link-custom {% if request.resolver_match.url_name == 'terms_conditions' %}active{% endif %}">
+        <i class="fas fa-file-contract me-3"></i> Terms and Conditions
+    </a>
+     <!-- Settings -->
+    <a href="#" class="nav-link-custom">
+        <i class="fas fa-file-excel"></i> Reports
+    </a>
+</div>
+
+
+
+<!-- MAIN CONTENT -->
+<div class="main">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+        <div class="d-flex align-items-center">
+            <i class="bi bi-list fs-2"
+   id="sidebarToggle"
+   onclick="toggleUnifiedSidebar()"
+   title="Toggle Sidebar"></i>
+            <div class="left-title">{% block page_title %}{% endblock %}</div>
+        </div>
+
+        <div class="right-icons d-flex align-items-center">
+            <i class="fas fa-bell"></i>
+
+            <div class="dropdown">
+                {%if client.logo%}
+                <img src="/media/{{client.logo}}"
+                     class="profile-img dropdown-toggle"
+                     data-bs-toggle="dropdown">
+                {%else%}
+                <img src="{% static 'images/profile.png' %}"
+                     class="profile-img dropdown-toggle"
+                     data-bs-toggle="dropdown">
+                 {%endif%}
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                    <li type="none" class="text-decoration-none text-center pt-3"><h6 class="fw-bolder ">{{client.client_name}}</h6></li>
+                    <li class="text-white"><hr class="bg-white text-dark"></li>
+                    <li><a class="dropdown-item" href="{%url 'client_admin_profile'%}"><i class="fas fa-user me-2"></i>Profile</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="{%url 'client_settings'%}"><i class="fas fa-gear fs-5 me-2"></i>Settings</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item text-danger logout" href="{%url 'logout'%}"><i class="fas fa-sign-out-alt text-danger"></i>Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- PAGE CONTENT AREA -->
+    <div class="p-4">
+        {% if messages %}
+<div class="toast-container mt-5">
+    {% for message in messages %}
+    <div class="custom-toast {{ message.tags }}">
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+        {% block content %}
+        {% endblock %}
+    </div>
+</div>
+
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+
+<script>
+    function toggleSidebar() {
+        document.getElementById("sidebar").classList.toggle("active");
+        if (window.innerWidth <= 991) {
+        sidebar.classList.toggle("active");
+        document.body.classList.toggle("sidebar-open");
+    }
+    }
+    // Remove toast after animation
+    setTimeout(() => {
+        document.querySelectorAll(".custom-toast").forEach(t => t.remove());
+    }, 3500);
+
+document.addEventListener("DOMContentLoaded", function () {
+    const titles = document.querySelectorAll(".menu-title");
+    const sidebar = document.getElementById("sidebar");
+
+    sidebar.addEventListener("click", function (e) {
+        if (window.innerWidth <= 991 && sidebar.classList.contains("active")) {
+            sidebar.classList.remove("active");
+            document.body.classList.remove("sidebar-open");
+        }
+    });
+    titles.forEach(title => {
+        title.addEventListener("click", function () {
+
+            const currentSub = this.nextElementSibling;
+            const isOpening = currentSub.style.display !== "block";
+
+            document.querySelectorAll(".menu-title").forEach(other => {
+                const otherSub = other.nextElementSibling;
+
+                if (other !== title) {
+                    other.classList.remove("active");
+                    otherSub.style.display = "none";
+                }
+            });
+
+            // 🔥 TOGGLE CURRENT
+            if (isOpening) {
+                this.classList.add("active");
+                currentSub.style.display = "block";
+            } else {
+                this.classList.remove("active");
+                currentSub.style.display = "none";
+            }
+        });
+    });
+});
+function toggleUnifiedSidebar() {
+    const sidebar = document.getElementById("sidebar");
+    const isMobile = window.innerWidth <= 991;
+
+    if (isMobile) {
+        // 📱 Mobile → slide in/out
+        sidebar.classList.toggle("active");
+        document.body.classList.toggle("sidebar-open");
+    } else {
+        // 🖥 Desktop → collapse/expand
+        sidebar.classList.toggle("collapsed");
+
+        // Save preference
+        localStorage.setItem(
+            "sidebarCollapsed",
+            sidebar.classList.contains("collapsed")
+        );
+    }
+}
+
+</script>
+
+</body>
+</html>

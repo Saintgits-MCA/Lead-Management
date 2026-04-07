@@ -1,0 +1,278 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block page_title %}
+<h2 class="page-title">
+Dashboard
+ <span class="breadcrumb-text">Home • Dashboard</span>
+</h2>
+{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/remixicon.css' %}">
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<style>
+.page-title { font-size: 22px; font-weight: 600; margin-left: 10px; }
+.breadcrumb-text { font-size: 12px; color: #888; margin-left: 10px; }
+body::-webkit-scrollbar{
+  width:1px;
+}
+@media(min-width:1200px)
+{
+.lead-table,.table-container .leads-table{
+  overflow-x:auto;
+}
+  .table-responsive {
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+
+ .leads-table{
+  width:1060px;
+  max-width:1060px;
+}
+}
+@media (max-width: 991px) {
+    .leads-table {
+        font-size: 0.92rem;           /* slightly smaller text on tablet/mobile */
+    }
+    .leads-table th, .leads-table td {
+        padding: 0.65rem !important;  /* tighter padding */
+    }
+}
+.right-card{
+  height:380px;
+}
+
+.main {
+    overflow: visible !important;
+    will-change: transform;      
+}
+
+.topbar {
+    position: sticky;
+    top: 0;
+    z-index: 900;            
+}
+
+</style>
+<div class="dashboard-container px-0">
+
+  <!-- TOP STAT CARDS -->
+  <div class="row top-stats-row g-3 mb-4">
+    <div class="col-md-3">
+    <a href="{%url 'leads'%}" class="text-decoration-none">
+      <div class="top-card stat-card--soft stat--blue">
+        <div class="tc-left">
+       <div class="tc-icon">
+            <i class="ri-team-fill fs-4"></i>
+          </div>
+        </div>
+     <div class="tc-right">
+          <div class="tc-number">{{lead_count|default:0 }}</div>
+          <div class="tc-label">Leads</div>
+        </div>
+      </div>
+      </a>
+    </div>
+
+    <div class="col-md-3">
+  <a href="{% url 'leads' %}?status=Converted" class="text-decoration-none">
+    <div class="top-card stat-card--soft stat--peach">
+      <div class="tc-left">
+        <div class="tc-icon">
+          <i class="fas fa-file-lines fs-4"></i>
+        </div>
+      </div>
+      <div class="tc-right">
+        <div class="tc-number">{{ converted_count|default:0 }}</div>
+        <div class="tc-label">Converted Leads</div>
+      </div>
+    </div>
+  </a>
+</div>
+
+    <div class="col-md-3">
+      <a href="{% url 'leads' %}?status=Quoted" class="text-decoration-none">
+      <div class="top-card stat-card--soft stat--cyan">
+        <div class="tc-left">
+          <div class="tc-icon">
+            <i class="fas fa-sack-dollar fs-4"></i>
+          </div>
+        </div>
+        <div class="tc-right">
+          <div class="tc-number">{{ quoted_count|default:0 }}</div>
+          <div class="tc-label">Quotations</div>
+        </div>
+      </div>
+    </a>
+    </div>
+
+    <div class="col-md-3">
+    <a href="{%url 'reminder_list'%}" class="text-decoration-none">
+      <div class="top-card stat-card--soft stat--pink">
+        <div class="tc-left">
+          <div class="tc-icon">
+            <i class="fas fa-bell fs-4"></i>
+          </div>
+        </div>
+        <div class="tc-right">
+          <div class="tc-number">{{ reminders|default:0 }}</div>
+          <div class="tc-label">Reminders</div>
+        </div>
+      </div>
+    </div>
+  </a>
+  </div>
+
+  <div class="row g-4">
+
+    <!-- LEFT BIG COLUMN -->
+    <div class="col-lg-8">
+
+      <div class="row g-2">
+        <div class="col-md-12">
+          <div class="card white-card">
+            <div class="card-head">
+              <h6>Lead Status</h6>
+              <a href="{%url 'leads'%}"><button class="btn-small">View All</button></a>
+            </div>
+
+            <div class="filters">
+              <input type="date" class="date-input" placeholder="dd-mm-yyyy" />
+              <input type="date" class="date-input" placeholder="dd-mm-yyyy" />
+            </div>
+
+            <ul class="lead-status-list">
+              <li><span class="status-dot new"></span> New <span class="status-count">{{ new_count|default:0 }}</span></li>
+              <li><span class="status-dot inprog"></span> Quoted <span class="status-count">{{ quoted_lead_count|default:0}}</span></li>
+              <li><span class="status-dot follow"></span> Follow-up <span class="status-count">{{ followup_count|default:0 }}</span></li>
+              <li><span class="status-dot converted"></span> Converted <span class="status-count">{{ converted_count|default:0 }}</span></li>
+              <li><span class="status-dot rejected"></span> Rejected <span class="status-count">{{ rejected_count|default:0 }}</span></li>
+            </ul>
+          </div>
+        </div>
+
+        {% comment %} <div class="col-md-6">
+          <div class="card white-card">
+            <div class="card-head">
+              <h6>Converted Lead</h6>
+              <button class="btn-small">View</button>
+            </div>
+
+            <div class="filters">
+              <input type="date" class="date-input" placeholder="dd-mm-yyyy" />
+              <input type="date" class="date-input" placeholder="dd-mm-yyyy" />
+            </div>
+
+            <ul class="converted-list">
+              <li><span class="dot marine"></span> Marine Insurance <span class="status-count">2</span></li>
+              <li><span class="dot motor"></span> Motor Insurance <span class="status-count">10</span></li>
+              <li><span class="dot health"></span> Health Insurance <span class="status-count">46</span></li>
+              <li><span class="dot fire"></span> Fire Insurance <span class="status-count">2</span></li>
+              <li><span class="dot festival"></span> Festival Insurance <span class="status-count">5</span></li>
+            </ul>
+          </div>
+        </div> {% endcomment %}
+      </div>
+
+  <div class="card  leads-table mt-4">
+        <div class="card-head">
+          <h6>Leads</h6>
+          <a href="{%url 'leads'%}"><button class="btn-small">View All</button></a>
+        </div>
+
+        <div class="table-container">
+    <div class="table-responsive-md"  style="max-height:500px;overflow-y:auto;">
+        <table class="table leads-table table-hover align-middle">
+            <thead class="table-light sticky-top">
+                <tr>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Category</th>
+                    <th>Next Followup</th>
+                    <th>Pending Days</th>
+                    <th>Assign to</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody class="fs-5">
+                {% for l in lead %}  <!-- Assuming context has 'employees' with lead data -->
+                <tr>
+                    <td class="fw-medium">{{ l.lead.customer_name }}</td>
+                    <td>{{ l.lead.phone }}</td>
+                    <td>{{ l.lead.product_category|upper }}</td>
+                    <td>
+                        {% if l.lead.next_followup_date %}
+                            {{ l.lead.next_followup_date|date:"d-m-Y" }}
+                        {% else %}—{% endif %}
+                    </td>
+                    <td class="pending {% if l.pending_days <= 0 %}text-danger{% else %}text-success{% endif %}">
+                        {% if l.pending_days <= 0 %}
+                            {{ l.pending_days }} DAYS OVERDUE
+                        {% else %}
+                            +{{ l.pending_days }} DAYS
+                        {% endif %}
+                    </td>
+                    <td>{{ l.lead.assign_to|default:"Unassigned" }}</td>
+                    <td>
+                        <span class="badge 
+                            {% if l.lead.status == 'Follow-up' %}text-primary
+                            {% elif l.lead.status == 'Converted' %}text-warning
+                            {% elif l.lead.status == 'New' %}text-success
+                            {% else %}text-secondary{% endif %}">
+                            {{ l.lead.status }}
+                        </span>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-5">
+                        No leads found
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+         </div>
+      </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="col-lg-4">
+
+      <div class="card right-card mt-3 mb-4" >
+    <div class="card-head">
+      <h6>Reminders</h6>
+      <a href="{%url 'reminder_list'%}"><button class="btn-small">View All</button></a>
+    </div>
+
+    <div class="p-2" style="max-height: 580px; overflow-y: auto;">
+        {% for r in reminder_list %}
+        <div class="d-flex align-items-center py-2 border-bottom small reminder-single-line">
+            <div class="flex-grow-1 text-truncate">
+                <strong>{{ r.title }}</strong>
+                <span class="text-muted fs-5 ms-2 " title="{{ r.date}}">• {{ r.date }}</span>
+                {% if r.note %}
+                <br><small class="text-danger fs-6 text-truncate d-block" title="{{ r.note}}">{{ r.note }}</small>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center text-muted py-4 small">No expired documents</div>
+        {% endfor %}
+    </div>
+</div>
+
+
+<script>
+  // if base.html shows message container, auto-hide after 3.5s
+  setTimeout(()=> {
+    document.querySelectorAll('.custom-toast').forEach(e=>e.remove());
+  }, 3500);
+</script>
+
+{% endblock %}

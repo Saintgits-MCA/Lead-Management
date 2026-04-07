@@ -1,0 +1,239 @@
+{% extends 'base.html' %}
+{%load static%}
+{% block page_title %}
+<h2 class="page-title">
+    Add Employee
+    <span class="breadcrumb-text">Home • Registers • Employee • Add Employee</span>
+</h2>
+{% endblock page_title %}
+
+{% block content %}
+<a href="{% url 'employee_list' %}">
+    <button class="btn btn-success fw-bold float-end">
+        <i class="fas fa-eye me-2"></i>List
+    </button>
+</a>
+
+<link href="{%static 'css/all.min.css'%}" rel="stylesheet">
+
+<style>
+/* HEADER */
+.page-title { font-size: 22px; font-weight: 700; }
+.breadcrumb-text { font-size: 12px; color: #888; margin-left: 10px; }
+
+/* CARD STYLE */
+.form-card {
+    background: #fff;
+    border-radius: 18px;
+    padding: 40px 35px;
+    margin-top: 30px;
+    margin-bottom: 35px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.06);
+    border: 1px solid #e7e7e7;
+}
+
+/* LABEL */
+label {
+    font-weight: 600;
+    font-size: 14px;
+    color: #333;
+}
+
+/* MODERN INPUT BOX */
+.field-box {
+    position: relative;
+}
+
+.field-box .form-control,
+.field-box select,
+.field-box textarea {
+    border-radius: 14px !important;
+    background: #f3f6f9 !important;
+    border: 1px solid #d4d8dd !important;
+    padding: 10px 40px 10px 14px !important;  /* space for icon */
+    font-size: 14px;
+    transition: 0.25s ease;
+    height: 46px;
+}
+
+.field-box textarea {
+    height: auto;
+    padding-top: 12px !important;
+}
+
+.field-box select {
+    appearance: none;
+}
+
+/* FOCUS STYLE */
+.form-control:focus, select:focus, textarea:focus {
+    border-color: #0d6efd !important;
+    box-shadow: 0 0 0 3px rgba(13,110,253,0.15) !important;
+    background: #fff !important;
+}
+
+/* PERFECT ICON ALIGNMENT */
+.input-icon {
+    position: absolute;
+    right: 24px;
+    top: 50px;
+    transform: translateY(-50%);
+    font-size: 15px;
+    color: #6c757d;
+    pointer-events: none;
+}
+
+/* TEXTAREA ICON FIX */
+.field-box textarea + .input-icon {
+    top: 22px !important;
+}
+
+/* BUTTONS */
+.save-btn {
+    padding: 12px 28px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #06b6d4, #3b82f6);
+    border: none;
+    color: #fff;
+    font-weight: 600;
+}
+
+.cancel-btn {
+    padding: 12px 28px;
+    border-radius: 12px;
+    background: #ef4444;
+    border: none;
+    color: #fff;
+    font-weight: 600;
+}
+
+.row.g-4 { row-gap: 25px !important; }
+/* Wrapper for each field */
+.input-wrap {
+    position: relative;
+    width: 100%;
+}
+
+/* All form inputs */
+.input-wrap .form-control,
+.input-wrap select,
+.input-wrap textarea {
+    padding-right: 42px !important;   /* space for icon */
+    border-radius: 10px !important;
+}
+
+/* Icon alignment */
+.input-wrap .icon {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6d6d6d;
+    font-size: 15px;
+    pointer-events: none;
+}
+
+/* Textarea fix */
+.input-wrap textarea + .icon {
+    top: 18px;
+    transform: none;
+}
+
+</style>
+
+<form method="POST" enctype="multipart/form-data" class="form-card mt-5">
+    {% csrf_token %}
+    
+    <div class="row g-4">
+
+        <!-- Employee Code -->
+        <div class="col-md-4 field-box">
+            <label>Employee Code</label>
+            <input type="text" name="employee_code" class="form-control" 
+       value="{{ request.POST.employee_code|default_if_none:'' }}">
+        </div>
+
+        <!-- Employee Name -->
+        <div class="col-md-4 field-box">
+            <label>Employee Name</label>
+          <input type="text" name="employee_name" class="form-control" required
+       value="{{ request.POST.employee_name|default_if_none:'' }}">
+        </div>
+
+        <!-- Branch -->
+        {% comment %} <div class="col-md-4 field-box">
+            <label>Branch</label>
+            <select name="branch" class="form-control">
+                <option>Select</option>
+                {% for b in branches %}
+                <option value="{{ b.id }}">{{ b.name }}</option>
+                {% endfor %}
+            </select>
+            <i class="fa fa-building input-icon"></i>
+        </div> {% endcomment %}
+
+
+        <!-- Gender -->
+        <div class="col-md-4">
+            <label>Gender</label><br>
+            <label><input type="radio" name="gender" value="Male"> Male</label>
+            <label class="ms-3"><input type="radio" name="gender" value="Female"> Female</label>
+            <label class="ms-3"><input type="radio" name="gender" value="Others"> Others</label>
+        </div>
+        
+        <!-- Email -->
+        <div class="col-md-4 field-box">
+            <label>Email</label>
+            <input type="email" name="email" class="form-control" required
+       value="{{ request.POST.email|default_if_none:'' }}">
+        </div>
+
+        <!-- Mobile -->
+        <div class="col-md-4 field-box">
+            <label>Mobile</label>
+           <input type="tel" name="mobile" pattern="^[6-9][0-9]{9}" class="form-control" required
+       value="{{ request.POST.mobile|default_if_none:'' }}">
+        </div>
+      
+        <!-- Address -->
+        <div class="col-md-4 field-box">
+            <label class="form-label">Address</label>
+            <textarea name="address" class="form-control" style="height:130px;">{{ request.POST.address }}</textarea>
+
+        </div>
+        
+        <!-- Designation -->
+        <div class="col-md-4 field-box">
+            <label>Designation</label>
+            <input type="text" name="designation" class="form-control"
+       value="{{ request.POST.designation|default_if_none:'' }}">
+        </div>
+
+       <!-- Join Date -->
+        <div class="col-md-4 field-box">
+            <label>Join Date</label>
+           <input type="date" name="join_date" class="form-control"
+       value="{{ request.POST.join_date|default_if_none:'' }}">
+        </div>
+      <!-- Password  -->
+      <div class="col-md-4 field-box">
+            <label>Password</label>
+       <input type="text" name="password" class="form-control"
+       value="{{ request.POST.password|default_if_none:'' }}">
+            <i class="fa fa-lock input-icon"></i>
+        </div>
+          <!-- Status -->
+        <div class="col-md-4">
+            <label>Status</label><br>
+            <label><input type="checkbox" name="status" value=1> Active</label>
+        </div>
+    </div>
+
+    <!-- Buttons -->
+    <div class="mt-4 d-flex gap-3">
+        <button type="submit" class="save-btn">Save Employee</button>
+        <button type="reset" class="cancel-btn">Cancel</button>
+    </div>
+</form>
+
+{% endblock %}

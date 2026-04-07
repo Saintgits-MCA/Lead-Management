@@ -1,0 +1,784 @@
+{% extends 'employee/base.html' %}
+
+{% block page_title %}My Leads{% endblock %}
+
+{% block content %}
+
+<style>
+    /* ====================== MY LEADS PAGE - FULL RESPONSIVE TABLE ====================== */
+
+    /* Base table responsive wrapper */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        display: block;
+        width: 100%;
+        border-radius: 12px;
+        margin-bottom: 1rem;
+    }
+
+    /* Force table to allow horizontal scroll on small screens */
+    .table {
+        min-width: 900px; /* Adjust based on your columns; ensures scroll on mobile */
+        width: 100%;
+        margin-bottom: 0;
+    }
+
+    /* General cell styling */
+    .table th,
+    .table td {
+        white-space: nowrap;
+        vertical-align: middle;
+    }
+
+    /* Desktop - full comfortable view */
+    @media (min-width: 992px) {
+        .table th,
+        .table td {
+            padding: 14px 16px;
+            font-size: 15px;
+        }
+
+        .btn-group .btn {
+            padding: 8px 12px;
+            font-size: 14px;
+        }
+    }
+
+    /* Tablet */
+    @media (max-width: 991.98px) {
+        .card-body {
+            padding: 20px;
+        }
+
+        h4.card-title {
+            font-size: 1.5rem;
+        }
+
+        #searchInput {
+            max-width: 100% !important;
+            font-size: 15px;
+        }
+
+        .table th,
+        .table td {
+            padding: 12px 10px;
+            font-size: 14.5px;
+        }
+    }
+
+    /* Mobile */
+    @media (max-width: 767.98px) {
+        .card-body {
+            padding: 15px;
+        }
+
+        h4.card-title {
+            font-size: 1.35rem;
+        }
+
+        #searchInput {
+            font-size: 14px;
+        }
+
+        .table th,
+        .table td {
+            padding: 10px 6px;
+            font-size: 13.5px;
+        }
+
+        .badge {
+            font-size: 11px;
+            padding: 5px 9px;
+        }
+
+        /* Compact action buttons on mobile */
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            justify-content: center;
+        }
+
+        .btn-group .btn {
+            padding: 8px;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-group .btn i {
+            font-size: 15px;
+            margin: 0;
+        }
+    }
+
+    /* Extra small phones */
+    @media (max-width: 575.98px) {
+        .table th,
+        .table td {
+            padding: 8px 4px;
+            font-size: 13px;
+        }
+
+        .table {
+            min-width: 750px;
+        }
+
+        .btn-group .btn {
+            width: 36px;
+            height: 36px;
+            padding: 6px;
+        }
+
+        .btn-group .btn i {
+            font-size: 14px;
+        }
+    }
+
+    /* Ensure buttons have good contrast and hover effect */
+    .btn-group .btn {
+        border: 1px solid #ddd;
+    }
+
+    .btn-group .btn:hover {
+        background-color: #f8f9fa;
+        border-color: #0d6efd;
+        color: #0d6efd;
+    }
+</style>
+
+<div class="card">
+    <div class="card-body">
+       <div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="card-title mb-0">My Assigned Leads ({{ leads.count }})</h4>
+
+    <button class="btn btn-success"
+            onclick="openAddModal()">
+        <i class="fas fa-plus"></i> Add Lead
+    </button>
+</div>
+        <input type="text" id="searchInput" class="form-control mb-4" placeholder="Search by name, phone, category..." style="max-width:450px;">
+
+       <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+    <table class="table table-hover align-middle sticky-head" >
+  
+        <thead class="table-light">
+            <tr>
+                <th>#</th>
+                <th>Customer Name</th>
+                <th>Phone</th>
+                <th>Category</th>
+                <th>Next Follow-up</th>
+                <th>Status</th>
+                <th class="text-center">Actions</th> 
+            </tr>
+        </thead>
+        <tbody id="leadsBody">
+            {% for lead in leads %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td><strong>{{ lead.customer_name }}</strong></td>
+                <td>{{ lead.phone }}</td>
+                <td>{{ lead.product_category }}</td>
+                <td>{{ lead.next_followup_date|date:"d-m-Y"|default:"—" }}</td>
+                <td>
+                    <span class="badge bg-{% if lead.status == 'Follow-up' %}primary{% elif lead.status == 'Converted' %}success{% elif lead.status == 'Quoted' %}warning{% else %}secondary{% endif %}">
+                        {{ lead.status }}
+                    </span>
+                </td>
+<td class="text-center">
+    <div class="btn-group btn-group-sm" role="group">
+        <!-- View Button -->
+        <button type="button" class="btn btn-outline-secondary" 
+                data-bs-toggle="modal" data-bs-target="#leadViewModal" 
+                onclick="openViewModal({{ lead.id }})" 
+                title="View Details">
+            <i class="fas fa-eye"></i>
+        </button>
+
+        <!-- Edit Button -->
+        <button type="button" class="btn btn-outline-primary"  
+                onclick="openEditModal({{ lead.id }})" 
+                title="Edit Lead">
+            <i class="fas fa-edit"></i>
+        </button>
+
+        <!-- Quotation Actions -->
+        {% if lead.quotation_set.exists %}
+            {% with quotation=lead.quotation_set.first %}
+            <a href="{% url 'quotation_pdf' quotation.id %}" 
+               class="btn btn-outline-success" 
+               target="_blank" 
+               title="View Quotation PDF">
+                <i class="fas fa-file-pdf text-danger"></i>
+            </a>
+            <a href="{%url 'employee_quotation_edit' quotation.id%}" 
+               class="btn btn-outline-dark" 
+               title="Edit Quotation">
+                <i class="fas fa-file-signature"></i>
+            </a>
+            {% endwith %}
+        {% else %}
+            <a href="{%url 'employee_quotation_maker' lead.id %}" 
+               class="btn btn-outline-info" 
+               title="Create Quotation">
+                <i class="fas fa-file-invoice-dollar"></i>
+            </a>
+        {% endif %}
+    </div>
+</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" class="text-center py-5 text-muted">No leads assigned to you</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+<div class="modal fade" id="leadViewModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content rounded-3">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Lead Details</h5>
+                <button type="button" class="btn btn-danger text-white ms-auto" data-bs-dismiss="modal"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body" id="viewLeadBody">
+                <p class="text-center">Loading...</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="leadModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content rounded-3">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="leadModalTitle">Edit Lead</h5>
+                <button type="button" class="btn btn-danger text-white ms-auto" data-bs-dismiss="modal"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body" id="editLeadBody">
+                 <form id="leadForm" method="POST">
+                    <input type="hidden" id="leadId" name="lead_id">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label>Customer Name <span class="text-danger">*</span></label>
+                            <input type="text" id="customer_name" name="customer_name" class="form-control">
+                        </div>
+                        <div class="col-md-3">
+                            <label>Phone <span class="text-danger">*</span></label>
+                            <input type="text" name="phone" id="phone" class="form-control" >
+                        </div>
+                        <div class="col-md-3">
+                            <label>Email</label>
+                            <input type="email" id="email" name="email" class="form-control" >
+                            <small id="emailError" class="text-danger d-none">Please enter a valid email address</small>
+
+                        </div>
+                        <div class="col-md-3">
+                            <label>Location</label>
+                            <input type="text" id="location" name="location" class="form-control">
+                        </div>
+
+                        <div class="col-md-3">
+                         <label>Enquiry For <span class="text-danger">*</span></label>
+                        <select id="product_category" name="product_category" class="form-control" required>
+                        <option value="">Select Enquiry Category</option>
+                         {% for prod in enquiry_category %}
+                         <option value="{{ prod.name }}">{{ prod.name }}</option>
+                         {% endfor %}
+                       </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label>Lead Source <span class="text-danger">*</span></label>
+                            <select id="lead_source" name="lead_source" class="form-control" required>
+                                <option value="">Select</option>
+                                {% for ls in lead_sources %}
+                                <option value="{{ ls.id }}">{{ ls.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>                       
+
+          <div class="col-md-3">
+              <label>Assign To</label>
+              <select id="assign_to" name="assign_to" class="form-control" readonly>
+                  <option value="">Unassigned</option>
+                  {% for emp in employees %}
+                  <option value="{{ emp.employee_name }}">{{ emp.employee_name }} ({{ emp.designation }})</option>
+                  {% endfor %}
+              </select>
+          </div>
+
+                        <div class="col-md-3">
+                            <label>Next Followup Date</label>
+                            <input type="date" id="next_followup_date" name="next_followup_date" class="form-control">
+                        </div>
+                        <div class="col-md-3">
+                            <label>Time</label>
+                            <input type="time" id="followup_time" name="followup_time" class="form-control">
+                        </div>
+                        <div class="col-md-3">
+                            <label>Status</label>
+                            <select id="status" name="status" class="form-control">
+                                <option value="New">New</option>
+                                <option value="Quoted">Quoted</option>
+                                <option value="Follow-up">Follow-up</option>
+                                <option value="Converted">Converted</option>
+                                <option value="Rejected">Rejected</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label>Remarks</label>
+                            <input type="text" id="remarks" name="remarks" class="form-control" >
+                        </div>
+
+                        <div class="col-md-3">
+                            <label>Address</label>
+                            <textarea id="address" name="address" class="form-control" rows="3"></textarea>
+                        </div>
+                        <div class="col-md-6 mt-0">
+                            <label>Requirement Details</label>
+                            <textarea type="text" id="requirement_details" name="requirement_details" class="form-control" cols=5 rows=5 style="max-height:150px;overflow-y:auto;"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveEditBtn">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+    </div>
+</div>
+{% comment %} <script>
+    // Search (unchanged)
+    document.getElementById("searchInput").addEventListener("input", function() {
+        const term = this.value.toLowerCase();
+        document.querySelectorAll("#leadsBody tr").forEach(row => {
+            row.style.display = row.textContent.toLowerCase().includes(term) ? "" : "none";
+        });
+    });
+
+    // View modal (unchanged)
+    function openViewModal(leadId) {
+        fetch(`/get-lead/${leadId}/`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const l = data.data;
+                    const content = `
+                        <div class="row g-3">
+                            <div class="col-md-4"><strong>Name:</strong> ${l.customer_name}</div>
+                            <div class="col-md-4"><strong>Phone:</strong> ${l.phone}</div>
+                            <div class="col-md-4"><strong>Email:</strong> ${l.email || "—"}</div>
+                            <div class="col-md-4"><strong>Category:</strong> ${l.product_category}</div>
+                            <div class="col-md-4"><strong>Status:</strong> ${l.status}</div>
+                            <div class="col-md-4"><strong>Next Follow-up:</strong> ${l.next_followup_date || "—"}</div>
+                            <div class="col-md-12"><strong>Remarks:</strong><br>${l.remarks || "—"}</div>
+                            <div class="col-md-12"><strong>Address:</strong><br>${l.address || "—"}</div>
+                        </div>`;
+                    document.getElementById('viewLeadBody').innerHTML = content;
+                    new bootstrap.Modal(document.getElementById('leadViewModal')).show();
+                } else {
+                    alert("Failed to load lead details");
+                }
+            })
+            .catch(() => alert("Network error loading view"));
+    }
+
+    // Edit modal population
+    function openEditModal(leadId) {
+        fetch(`/get-lead/${leadId}/`)
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    const l = result.data;
+
+                    document.getElementById('leadId').value = l.id;
+                    document.getElementById('customer_name').value = l.customer_name || '';
+                    document.getElementById('phone').value = l.phone || '';
+                    document.getElementById('email').value = l.email || '';
+                    document.getElementById('location').value = l.location || '';
+                    document.getElementById('product_category').value = l.product_category || '';
+                    document.getElementById('lead_source').value = l.lead_source || '';  // use ID
+                    document.getElementById('assign_to').value = l.assign_to || '';
+                    document.getElementById('next_followup_date').value = l.next_followup_date || '';
+                    document.getElementById('followup_time').value = l.followup_time || '';
+                    document.getElementById('status').value = l.status || 'New';
+                    document.getElementById('remarks').value = l.remarks || '';
+                    document.getElementById('address').value = l.address || '';
+                    document.getElementById('requirement_details').value = l.requirement_details || '';
+
+                    new bootstrap.Modal(document.getElementById('leadModal')).show();
+                } else {
+                    alert('Failed to load lead for editing');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Network error while loading edit form');
+            });
+    }
+    function isValidPhone(phone) {
+    return /^[0-9]{10,15}$/.test(phone);
+}
+
+function isValidEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function clearValidation() {
+    document.getElementById('phoneError').classList.add('d-none');
+    document.getElementById('emailError').classList.add('d-none');
+}
+
+
+document.getElementById('saveEditBtn').addEventListener('click', function () {
+
+    const leadId = document.getElementById('leadId').value;
+    const phone = document.getElementById('phone').value.trim();
+    const email = document.getElementById('email').value.trim();
+
+    // REQUIRED FIELD CHECK
+    if (!phone) {
+        alert("Phone number is required");
+        return;
+    }
+
+    if (!isValidPhone(phone)) {
+        alert("Phone number must contain only digits (10–15)");
+        return;
+    }
+
+    if (email && !isValidEmail(email)) {
+        alert("Invalid email format");
+        return;
+    }
+
+    const data = {
+        lead_id: leadId || null,
+        customer_name: document.getElementById('customer_name').value.trim(),
+        phone: phone,
+        email: email,
+        assign_to:document.getElementById('assign_to').value,
+        location: document.getElementById('location').value.trim(),
+        product_category: document.getElementById('product_category').value,
+        lead_source: document.getElementById('lead_source').value,
+        next_followup_date: document.getElementById('next_followup_date').value || null,
+        followup_time: document.getElementById('followup_time').value || null,
+        status: document.getElementById('status').value,
+        remarks: document.getElementById('remarks').value.trim(),
+        address: document.getElementById('address').value.trim(),
+        requirement_details: document.getElementById('requirement_details').value.trim(),
+    };
+
+    fetch("{% url 'employee_leads' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(resp => {
+        if (resp.success) {
+            alert(resp.message);
+            location.reload();
+        } else {
+            alert(resp.error || "Failed to save lead");
+        }
+    })
+    .catch(() => alert("Server error"));
+});
+
+   function openAddModal() {
+    document.getElementById('leadModalTitle').innerText = "Add Lead";
+    document.getElementById('leadForm').reset();
+    document.getElementById('leadId').value = "";
+
+    document.getElementById('customer_name').removeAttribute('readonly');
+    document.getElementById('phone').removeAttribute('readonly');
+    document.getElementById('phone').setAttribute('required', 'required');
+
+    new bootstrap.Modal(document.getElementById('leadModal')).show();
+}
+function isValidEmail(email) {
+    // Simple + safe regex
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
+}
+document.getElementById("email").addEventListener("blur", function () {
+    const email = this.value.trim();
+    const errorEl = document.getElementById("emailError");
+
+    if (email && !isValidEmail(email)) {
+        errorEl.classList.remove("d-none");
+    } else {
+        errorEl.classList.add("d-none");
+    }
+});
+const leadModalEl = document.getElementById('leadModal');
+const leadModal = new bootstrap.Modal(leadModalEl, {
+    backdrop: 'static',
+    keyboard: false
+});
+
+leadModalEl.addEventListener('hidden.bs.modal', function () {
+    document.getElementById('leadForm').reset();
+    clearValidation();
+});
+
+document.addEventListener('hidden.bs.modal', function (event) {
+        // Remove any lingering backdrop
+        const backdrops = document.querySelectorAll('.modal-backdrop');
+        backdrops.forEach(backdrop => {
+            backdrop.remove();
+        });
+
+        // Reset body classes
+        document.body.classList.remove('modal-open');
+        document.body.style.removeProperty('padding-right');
+    });
+
+</script> {% endcomment %}
+<script>
+    // Search functionality
+    document.getElementById("searchInput").addEventListener("input", function() {
+        const term = this.value.toLowerCase();
+        document.querySelectorAll("#leadsBody tr").forEach(row => {
+            row.style.display = row.textContent.toLowerCase().includes(term) ? "" : "none";
+        });
+    });
+
+    // ===================== VIEW MODAL FIX =====================
+    let viewModalInstance = null;
+
+    function openViewModal(leadId) {
+        fetch(`/get-lead/${leadId}/`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const l = data.data;
+                    const content = `
+                        <div class="row g-3">
+                            <div class="col-md-4"><strong>Name:</strong> ${l.customer_name}</div>
+                            <div class="col-md-4"><strong>Phone:</strong> ${l.phone}</div>
+                            <div class="col-md-4"><strong>Email:</strong> ${l.email || "—"}</div>
+                            <div class="col-md-4"><strong>Category:</strong> ${l.product_category}</div>
+                            <div class="col-md-4"><strong>Status:</strong> ${l.status}</div>
+                            <div class="col-md-4"><strong>Next Follow-up:</strong> ${l.next_followup_date || "—"}</div>
+                            <div class="col-md-12"><strong>Remarks:</strong><br>${l.remarks || "—"}</div>
+                            <div class="col-md-12"><strong>Address:</strong><br>${l.address || "—"}</div>
+                        </div>`;
+
+                    document.getElementById('viewLeadBody').innerHTML = content;
+
+                    // Properly handle View Modal
+                    const viewModalEl = document.getElementById('leadViewModal');
+                    
+                    // Destroy previous instance if exists
+                    if (viewModalInstance) {
+                        viewModalInstance.dispose();
+                    }
+
+                    // Create fresh modal instance
+                    viewModalInstance = new bootstrap.Modal(viewModalEl, {
+                        backdrop: true,
+                        keyboard: true
+                    });
+
+                    viewModalInstance.show();
+                } else {
+                    alert("Failed to load lead details");
+                }
+            })
+            .catch(() => alert("Network error loading view"));
+    }
+
+    // ===================== EDIT / ADD MODAL =====================
+    let editModalInstance = null;
+
+    function openEditModal(leadId) {
+        fetch(`/get-lead/${leadId}/`)
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    const l = result.data;
+
+                    document.getElementById('leadId').value = l.id;
+                    document.getElementById('customer_name').value = l.customer_name || '';
+                    document.getElementById('phone').value = l.phone || '';
+                    document.getElementById('email').value = l.email || '';
+                    document.getElementById('location').value = l.location || '';
+                    document.getElementById('product_category').value = l.product_category || '';
+                    document.getElementById('lead_source').value = l.lead_source || '';
+                    document.getElementById('assign_to').value = l.assign_to || '';
+                    document.getElementById('next_followup_date').value = l.next_followup_date || '';
+                    document.getElementById('followup_time').value = l.followup_time || '';
+                    document.getElementById('status').value = l.status || 'New';
+                    document.getElementById('remarks').value = l.remarks || '';
+                    document.getElementById('address').value = l.address || '';
+                    document.getElementById('requirement_details').value = l.requirement_details || '';
+
+                    const modalEl = document.getElementById('leadModal');
+                    
+                    if (editModalInstance) editModalInstance.dispose();
+
+                    editModalInstance = new bootstrap.Modal(modalEl, {
+                        backdrop: 'static',
+                        keyboard: false
+                    });
+
+                    editModalInstance.show();
+                } else {
+                    alert('Failed to load lead for editing');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Network error while loading edit form');
+            });
+    }
+
+    function openAddModal() {
+        document.getElementById('leadModalTitle').innerText = "Add Lead";
+        document.getElementById('leadForm').reset();
+        document.getElementById('leadId').value = "";
+
+        document.getElementById('customer_name').removeAttribute('readonly');
+        document.getElementById('phone').removeAttribute('readonly');
+        document.getElementById('phone').setAttribute('required', 'required');
+
+        const modalEl = document.getElementById('leadModal');
+        
+        if (editModalInstance) editModalInstance.dispose();
+
+        editModalInstance = new bootstrap.Modal(modalEl, {
+            backdrop: 'static',
+            keyboard: false
+        });
+
+        editModalInstance.show();
+    }
+
+    // ===================== MODAL CLEANUP =====================
+    // Clean up backdrop when any modal is hidden
+    document.addEventListener('hidden.bs.modal', function (event) {
+        // Remove any lingering backdrop
+        const backdrops = document.querySelectorAll('.modal-backdrop');
+        backdrops.forEach(backdrop => {
+            backdrop.remove();
+        });
+
+        // Reset body classes
+        document.body.classList.remove('modal-open');
+        document.body.style.removeProperty('padding-right');
+    });
+
+    // Optional: Also handle manual close buttons
+    document.querySelectorAll('[data-bs-dismiss="modal"]').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const modalEl = this.closest('.modal');
+            if (modalEl) {
+                const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                if (modalInstance) modalInstance.hide();
+            }
+        });
+    });
+
+    // Form validation helpers
+    function isValidPhone(phone) {
+        return /^[0-9]{10,15}$/.test(phone);
+    }
+
+    function isValidEmail(email) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+
+    function clearValidation() {
+        const emailError = document.getElementById('emailError');
+        if (emailError) emailError.classList.add('d-none');
+    }
+
+    // Save button logic
+    document.getElementById('saveEditBtn').addEventListener('click', function () {
+        const leadId = document.getElementById('leadId').value;
+        const phone = document.getElementById('phone').value.trim();
+        const email = document.getElementById('email').value.trim();
+
+        if (!phone) {
+            alert("Phone number is required");
+            return;
+        }
+        if (!isValidPhone(phone)) {
+            alert("Phone number must contain only digits (10–15)");
+            return;
+        }
+        if (email && !isValidEmail(email)) {
+            alert("Invalid email format");
+            return;
+        }
+
+        const data = {
+            lead_id: leadId || null,
+            customer_name: document.getElementById('customer_name').value.trim(),
+            phone: phone,
+            email: email,
+            assign_to: document.getElementById('assign_to').value,
+            location: document.getElementById('location').value.trim(),
+            product_category: document.getElementById('product_category').value,
+            lead_source: document.getElementById('lead_source').value,
+            next_followup_date: document.getElementById('next_followup_date').value || null,
+            followup_time: document.getElementById('followup_time').value || null,
+            status: document.getElementById('status').value,
+            remarks: document.getElementById('remarks').value.trim(),
+            address: document.getElementById('address').value.trim(),
+            requirement_details: document.getElementById('requirement_details').value.trim(),
+        };
+
+        fetch("{% url 'employee_leads' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(res => res.json())
+        .then(resp => {
+            if (resp.success) {
+                alert(resp.message);
+                location.reload();
+            } else {
+                alert(resp.error || "Failed to save lead");
+            }
+        })
+        .catch(() => alert("Server error"));
+    });
+
+    // Email validation on blur
+    document.getElementById("email").addEventListener("blur", function () {
+        const email = this.value.trim();
+        const errorEl = document.getElementById("emailError");
+        if (errorEl) {
+            errorEl.classList.toggle("d-none", !email || isValidEmail(email));
+        }
+    });
+
+    // Reset form when edit/add modal is closed
+    const leadModalEl = document.getElementById('leadModal');
+    leadModalEl.addEventListener('hidden.bs.modal', function () {
+        document.getElementById('leadForm').reset();
+        clearValidation();
+    });
+
+</script>
+{% endblock %}

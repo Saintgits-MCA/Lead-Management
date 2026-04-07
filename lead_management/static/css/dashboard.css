@@ -1,0 +1,763 @@
+/* Dashboard main CSS (designed to match screenshot) */
+
+/* base */
+.dashboard-container {
+    padding: 22px;
+    font-family: 'Inter', sans-serif;
+    background: transparent;
+}
+
+/* ---------- TOP STAT CARDS ---------- */
+.top-stats-row {
+    margin-bottom: 12px;
+}
+
+.top-card {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 18px 20px;
+    border-radius: 16px;
+    min-height: 108px;
+    box-shadow: 0 18px 40px rgba(39, 46, 83, 0.06);
+    border: 1px solid rgba(15, 20, 30, 0.04);
+    background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+}
+
+/* left icon bubble */
+.tc-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    box-shadow: 0 6px 18px rgba(17, 29, 77, 0.06);
+    font-size: 20px;
+    color: #2e3a59;
+}
+
+/* right text */
+.tc-number {
+    font-size: 28px;
+    font-weight: 700;
+    color: #203047;
+}
+
+.tc-label {
+    font-size: 13px;
+    color: #6f7b8b;
+    margin-top: 6px;
+    font-weight: 600;
+}
+
+/* pastel tints */
+.stat--blue {
+    background: linear-gradient(135deg, #e6f3ff 0%, #ffffff 100%);
+}
+
+.stat--peach {
+    background: linear-gradient(135deg, #fff3ea 0%, #ffffff 100%);
+}
+
+.stat--cyan {
+    background: linear-gradient(135deg, #eafffb 0%, #ffffff 100%);
+}
+
+.stat--pink {
+    background: linear-gradient(135deg, #fff1f7 0%, #ffffff 100%);
+}
+
+/* icon color tweaks */
+.stat--blue .tc-icon {
+    color: #2a5bd6;
+}
+
+.stat--peach .tc-icon {
+    color: #c76b2f;
+}
+
+.stat--cyan .tc-icon {
+    color: #0aa6a6;
+}
+
+.stat--pink .tc-icon {
+    color: #c84b83;
+}
+
+/* ---------- Cards (white) ---------- */
+.white-card,
+.card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 16px 18px;
+    box-shadow: 0 14px 30px rgba(39, 46, 83, 0.04);
+    border: 1px solid rgba(15, 20, 30, 0.03);
+}
+
+/* card head */
+.card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.card-head h6 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: #253244;
+}
+
+.btn-small {
+    background: linear-gradient(135deg, #f1fbff, #e9f3ff);
+    border: none;
+    padding: 6px 12px;
+    border-radius: 8px;
+    color: #1386c6;
+    font-weight: 700;
+    font-size: 13px;
+}
+
+/* filter inputs */
+.filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.date-input {
+    border: 1px solid #e6eef6;
+    padding: 8px 10px;
+    border-radius: 8px;
+    width: 120px;
+    background: #fbfdff;
+}
+
+/* lead status list */
+.lead-status-list,
+.converted-list {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+    margin-top: 6px;
+}
+
+.lead-status-list li,
+.converted-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 8px;
+    border-bottom: 1px solid #f3f6f8;
+    font-weight: 600;
+    color: #324a5f;
+}
+
+.lead-status-list li:last-child,
+.converted-list li:last-child {
+    border-bottom: none;
+}
+
+/* small colored dots */
+.status-dot,
+.dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 10px;
+}
+
+.status-dot.new {
+    background: #12b5f7;
+}
+
+.status-dot.inprog,
+.status-dot.inprog {
+    background: #ff7aa8;
+}
+
+.status-dot.inprog {
+    background: #ff7a9d;
+}
+
+.status-dot.follow {
+    background: #7cd3ff;
+}
+
+.status-dot.converted {
+    background: #40d67f;
+}
+
+.status-dot.rejected {
+    background: #ff5e67;
+}
+
+/* converted dots */
+.dot.marine {
+    background: #ff9f43;
+}
+
+.dot.motor {
+    background: #5c7cfa;
+}
+
+.dot.health {
+    background: #28c76f;
+}
+
+.dot.fire {
+    background: #ea5455;
+}
+
+.dot.festival {
+    background: #ff7ab3;
+}
+
+/* status count */
+.status-count,
+.lead-status-list .status-count,
+.status-count {
+    font-weight: 700;
+    color: #2b394a;
+}
+
+.lead-status-list li .status-count {
+    font-weight: 700;
+    color: #2b394a;
+}
+
+/* ---------- Sparkline placeholder ---------- */
+.chart-area {
+    margin-top: 6px;
+}
+
+.sparkline-placeholder {
+    height: 70px;
+    border-radius: 10px;
+    background: linear-gradient(90deg, rgba(242, 245, 255, 0.7), #fbfdff);
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    gap: 12px;
+}
+
+.sparkline-line {
+    height: 22px;
+    width: 100%;
+    background: repeating-linear-gradient(90deg, #cfe7ff 0 4px, transparent 4px 8px);
+    border-radius: 6px;
+    box-shadow: inset 0 -6px 12px rgba(0, 0, 0, 0.02);
+}
+
+.sparkline-legend {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #6c7a8a;
+    font-weight: 700;
+    font-size: 13px;
+}
+
+.sparkline-legend .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #6dbdfa;
+    display: inline-block;
+}
+
+/* ---------- Table ---------- */
+.table-responsive {
+    overflow: auto;
+}
+
+.leads-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.leads-table thead th {
+    background: #f3f7fb;
+    border: none;
+    font-weight: 700;
+    color: #425a6b;
+    padding: 12px 10px;
+}
+
+.leads-table tbody td {
+    padding: 12px 10px;
+    border-bottom: 1px solid #f3f6f8;
+    color: #405060;
+    font-size: 13px;
+    vertical-align: middle;
+}
+
+.pending.red {
+    color: #ff3d45;
+    font-weight: 700;
+}
+
+.pending.green {
+    color: #39c16c;
+    font-weight: 700;
+}
+
+/* status badge */
+.badge {
+    padding: 6px 10px;
+    border-radius: 8px;
+    color: #fff;
+    font-weight: 700;
+    font-size: 12px;
+}
+
+.badge.blue {
+    background: #3d7df6;
+}
+
+.badge.green {
+    background: #32c97b;
+}
+
+/* ---------- RIGHT CARDS ---------- */
+.right-card {
+    background: linear-gradient(135deg, #fbf8ff, #ffffff);
+    padding: 14px;
+    border-radius: 14px;
+    box-shadow: 0 12px 28px rgba(38, 47, 88, 0.04);
+}
+
+.reminder-item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 12px;
+    margin-bottom: 10px;
+    background: linear-gradient(90deg, #fff0f1, #f8fbff);
+    border-radius: 12px;
+}
+
+.rem-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    box-shadow: 0 6px 14px rgba(17, 29, 77, 0.05);
+    font-size: 18px;
+    color: #3b78c2;
+}
+
+.rem-title {
+    font-weight: 700;
+    color: #203047;
+}
+
+.rem-meta {
+    font-size: 12px;
+    color: #7d8892;
+    margin-top: 4px;
+}
+
+.rem-note {
+    font-size: 12px;
+    color: #8b97a4;
+    margin-top: 6px;
+}
+
+/* tasks */
+.task-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.task-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #eef3f8;
+}
+
+.task-list li .t-sub {
+    font-size: 12px;
+    color: #7d8892;
+}
+
+.task-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-left: 8px;
+}
+
+.task-dot.red {
+    background: #ff3d45;
+}
+
+.task-dot.green {
+    background: #39c16c;
+}
+
+.task-dot.yellow {
+    background: #ffd24d;
+}
+
+/* employees */
+.emp-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid #eef3f8;
+}
+
+.emp-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3d7df6, #2fb9b9);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 16px;
+}
+
+.emp-name {
+    font-weight: 700;
+    color: #263447;
+}
+
+.emp-phone {
+    font-size: 12px;
+    color: #7d8892;
+}
+
+/* responsive tweaks */
+@media (max-width: 991px) {
+    .top-card {
+        min-height: 80px;
+        padding: 12px;
+    }
+
+    .tc-number {
+        font-size: 22px;
+    }
+
+    .dashboard-container {
+        padding: 14px;
+    }
+
+    .chart-area .sparkline-placeholder {
+        height: 56px;
+    }
+}
+
+/* -------------------------------------------------------------------
+   IMPROVED DASHBOARD CSS — MATCHES THE EXACT UI OF YOUR SCREENSHOT
+------------------------------------------------------------------- */
+
+/* MAIN WRAPPER */
+.dashboard-container {
+    padding: 20px 26px;
+    font-family: 'Inter', sans-serif;
+}
+
+/* ================================================================
+   TOP STAT CARDS — EXACT LIKE SCREENSHOT
+================================================================ */
+.top-card {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 22px 26px;
+    border-radius: 20px;
+    min-height: 120px;
+    background: linear-gradient(135deg, #ffffff 0%, #f6f9ff 100%);
+    border: 1px solid rgba(0, 0, 0, 0.03);
+    box-shadow: 0 18px 40px rgba(39, 46, 83, 0.06);
+}
+
+/* Icon bubble */
+.tc-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px !important;
+    box-shadow: 0 8px 18px rgba(17, 29, 77, 0.08);
+}
+
+/* Stat text */
+.tc-number {
+    font-size: 30px;
+    font-weight: 700;
+    color: #1d2c46;
+}
+
+.tc-label {
+    margin-top: 4px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #6f7b8b;
+}
+
+/* Color themes */
+.stat--blue {
+    background: linear-gradient(135deg, #e7f3ff, #ffffff);
+}
+
+.stat--peach {
+    background: linear-gradient(135deg, #fff1e7, #ffffff);
+}
+
+.stat--cyan {
+    background: linear-gradient(135deg, #eafffa, #ffffff);
+}
+
+.stat--pink {
+    background: linear-gradient(135deg, #ffeef7, #ffffff);
+}
+
+/* ============================================================
+   MAIN WHITE CARDS
+=========================================================== */
+.white-card,
+.card {
+    border-radius: 20px;
+    padding: 18px 22px;
+    background: white;
+    box-shadow: 0 20px 35px rgba(39, 46, 83, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+/* Header row */
+.card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+.card-head h6 {
+    font-size: 17px;
+    font-weight: 700;
+    color: #233048;
+}
+
+/* Buttons */
+.btn-small {
+    background: linear-gradient(135deg, #f0f7ff, #e6f1ff);
+    padding: 7px 14px;
+    border-radius: 10px;
+    border: 0;
+    font-size: 13px;
+    font-weight: 700;
+    color: #167acb;
+}
+
+/* Filter inputs */
+.date-input {
+    border: 1px solid #dfe7f1;
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-size: 13px;
+    background: #fbfdff;
+}
+
+/* Lists */
+.lead-status-list li,
+.converted-list li {
+    padding: 12px 4px;
+    font-size: 14px;
+    border-bottom: 1px solid #eef2f7;
+}
+
+/* Colored dots */
+.status-dot,
+.dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+/* ============================================================
+   IMPROVED RIGHT SIDE — EXACTLY MATCHES SCREENSHOT
+=========================================================== */
+
+/* RIGHT CARDS */
+.right-card {
+    background: linear-gradient(145deg, #fbfaff, #ffffff);
+    border-radius: 22px;
+    padding: 20px 22px;
+    box-shadow: 0 18px 40px rgba(38, 47, 88, 0.06);
+}
+
+/* Reminder items — large, rounded, soft */
+.reminder-item {
+    display: flex;
+    gap: 14px;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+    border-radius: 18px;
+    background: linear-gradient(90deg, #fff1f1, #f8fbff);
+}
+
+/* Large circular icon like screenshot */
+.rem-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    color: #3b78c2;
+    box-shadow: 0 8px 18px rgba(17, 29, 77, 0.08);
+}
+
+.rem-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1e2b3c;
+}
+
+.rem-meta {
+    font-size: 13px;
+    color: #7d8892;
+}
+
+.rem-note {
+    font-size: 12px;
+    color: #8c97a5;
+}
+
+/* Recent tasks */
+.task-list li {
+    padding: 14px 0;
+    border-bottom: 1px solid #eef2f5;
+}
+
+.task-list li strong {
+    font-size: 14px;
+    color: #223043;
+}
+
+.task-dot {
+    width: 12px;
+    height: 12px;
+}
+
+/* Employees — match screenshot */
+.emp-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 0;
+    border-bottom: 1px solid #eef2f7;
+}
+
+.emp-avatar {
+    width: 48px;
+    height: 48px;
+    font-size: 18px;
+    font-weight: 700;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4e8df8, #28b3b3);
+    color: white;
+}
+
+/* ============================================================
+   ALIGNMENT FIX — RIGHT COLUMN TOP ALIGNS WITH 4 STAT CARDS
+=========================================================== */
+@media (min-width: 992px) {
+    .col-lg-4 {
+        margin-top: 6px;
+        /* EXACT screenshot alignment */
+    }
+}
+
+/* =====================================================
+   FINAL MOBILE COLLAPSE FIX (NO COLOR / JS CHANGE)
+===================================================== */
+
+/* Never let dashboard control sidebar spacing */
+.dashboard-container {
+    margin-left: 0 !important;
+    width: 100% !important;
+}
+
+/* Prevent sideways scroll */
+html, body {
+    overflow-x: hidden;
+}
+
+/* -------------------- MOBILE & TABLET -------------------- */
+@media (max-width: 991px) {
+
+    /* Stack stat cards cleanly */
+    .top-stats-row > div {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+
+    /* Stack dashboard columns */
+    .col-lg-8,
+    .col-lg-4 {
+        width: 100%;
+    }
+
+    /* Right column spacing */
+    .col-lg-4 {
+        margin-top: 20px;
+    }
+
+    /* Filters wrap correctly */
+    .filters {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .date-input {
+        width: 100%;
+    }
+
+    /* Cards spacing */
+    .white-card,
+    .right-card {
+        padding: 16px;
+    }
+}
+
+/* -------------------- SMALL MOBILE -------------------- */
+@media (max-width: 576px) {
+
+    .dashboard-container {
+        padding: 12px !important;
+    }
+
+    .tc-number {
+        font-size: 20px;
+    }
+
+    .tc-icon {
+        width: 46px;
+        height: 46px;
+        font-size: 18px;
+    }
+}

@@ -1,0 +1,496 @@
+{% extends 'base.html' %}
+
+{% block page_title %}
+<h2 class="page-title">
+    Employee Details 
+    <span class="breadcrumb-text">Home • Registers • Employee Details</span>
+</h2>
+{% endblock page_title %}
+
+{% block content %}
+
+<a href="{% url 'employee_create' %}">
+    <button class="btn btn-success fw-bold float-end mb-3">
+        <i class="fas fa-plus me-2"></i>Add
+    </button>
+</a>
+
+<style>
+.page-title { font-size: 22px; font-weight: 600; margin-left: 10px; }
+.breadcrumb-text { font-size: 12px; color: #888; margin-left: 10px; }
+
+.filter-card {
+    background: #fff;
+    border-radius: 30px;
+    padding: 20px 25px;
+    margin-bottom: 20px;
+    box-shadow: 0px 0px 25px rgba(0,0,0,0.06);
+}
+
+.table-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: 0px 0px 25px rgba(0,0,0,0.06);
+}
+
+body::-webkit-scrollbar { width:1px; }
+
+/* ================= RESPONSIVE FIXES ================= */
+
+
+/* FILTER STACK */
+@media (max-width: 991px) {
+    .filter-card {
+        padding: 16px;
+        border-radius: 20px;
+    }
+
+    .filter-card .row > div {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+
+    .filter-card button {
+        width: 100%;
+    }
+}
+
+/* TABLE RESPONSIVE */
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.employee-table th,
+.employee-table td {
+    white-space: nowrap;
+}
+
+/* TOP CONTROLS STACK */
+@media (max-width: 768px) {
+
+    .table-card {
+        padding: 16px;
+    }
+
+    .table-controls {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+    }
+
+    .table-controls input,
+    .table-controls select {
+        width: 100% !important;
+    }
+
+    .pagination-wrap {
+        flex-direction: column;
+        gap: 10px;
+        align-items: center;
+        text-align: center;
+    }
+}
+
+/* ACTION BUTTONS */
+@media (max-width: 576px) {
+    .employee-table td:last-child {
+        display: flex;
+        gap: 6px;
+    }
+
+    .employee-table .btn {
+        padding: 4px 8px;
+        font-size: 12px;
+    }
+
+    .btn.btn-success.float-end {
+        float: none !important;
+        width: 100%;
+    }
+}
+</style>
+
+<!-- FILTER -->
+<div class="filter-card mt-5">
+    <form id="filterForm">
+        <div class="row g-2 align-items-end">
+            <div class="col-md-2">
+                <label>Designation</label>
+                <input type="text" id="filterDesignation" class="form-control" placeholder="e.g. Manager">
+            </div>
+            <div class="col-md-2">
+                <label>Keyword</label>
+                <input type="text" id="filterKeyword" class="form-control" placeholder="Name/Code/Email">
+            </div>
+            <div class="col-md-2">
+                <label>Date From</label>
+                <input type="date" id="filterDateFrom" class="form-control">
+            </div>
+            <div class="col-md-2">
+                <label>Date To</label>
+                <input type="date" id="filterDateTo" class="form-control">
+            </div>
+            <div class="col-md-2">
+                <label>Status</label>
+                <select id="filterStatus" class="form-control">
+                    <option value="">All</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                </select>
+            </div>
+            {% comment %} <div class="col-md-2">
+                <button type="button" class="btn btn-primary w-100" onclick="applyFilter()">
+                    <i class="fas fa-filter me-1"></i> Apply Filter
+                </button>
+            </div> {% endcomment %}
+        </div>
+    </form>
+</div>
+
+<!-- TABLE -->
+<div class="table-card">
+
+    <!-- CONTROLS -->
+    <div class="d-flex justify-content-between mb-2 table-controls">
+        <div>
+            Show
+            <select id="entriesSelect" class="form-control d-inline-block" style="width:70px;">
+    <option value="10" selected>10</option>
+    <option value="25">25</option>
+    <option value="50">50</option>
+    <option value="100">100</option>
+
+</select>
+            entries
+        </div>
+
+        <div>
+    Search:
+    <input type="text" class="form-control d-inline-block"
+           id="employeeSearch"
+           style="width:200px;"
+           placeholder="Search employee...">
+</div>
+
+    </div>
+
+   <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+        <table class="table table-hover align-middle mb-0 sticky-header employee-table">
+            <thead>
+                <tr>
+                    <th>Employee_Code</th>
+                    <th>Name</th>
+                    <th>Gender</th>
+                    <th>Phone Number</th>
+                    <th>Email</th>
+                    <th>Join Date</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+    {% for emp in employees %}
+    <tr data-designation="{{ emp.designation|lower }}"
+        data-status="{% if emp.status %}active{% else %}inactive{% endif %}"
+        data-join-date="{{ emp.join_date|date:'Y-m-d' }}">
+        <td>{{ emp.employee_code }}</td>
+        <td>{{ emp.employee_name }}</td>
+        <td>{{ emp.gender }}</td>
+        <td>{{ emp.mobile }}</td>
+        <td>{{ emp.email }}</td>
+        <td>{{ emp.join_date|date:"d/m/Y" }}</td>
+        <td>
+            {% if emp.status %}
+                <span class="px-2 rounded-2 text-white" style="background:#22c55e;">Active</span>
+            {% else %}
+                <span class="px-2 rounded-2 text-white" style="background:#ef4444;">Inactive</span>
+            {% endif %}
+        </td>
+        <td>
+            <button type="button" class="btn btn-sm btn-primary me-1" 
+                    data-bs-toggle="modal" 
+                    data-bs-target="#editModal" 
+                    onclick="loadEmployeeForEdit({{ emp.id }})">
+                <i class="fas fa-edit"></i>
+            </button>
+            {% comment %} <button class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to proceed?');"><i class="fas fa-trash-alt"></i></button> {% endcomment %}
+        </td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="8" class="text-center py-4 text-muted">No employees found</td></tr>
+    {% endfor %}
+</tbody>
+        </table>
+    </div>
+
+
+    <!-- Edit Modal -->
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Edit Employee</h5>
+                <button type="button" class="btn btn-danger ms-auto" data-bs-dismiss="modal"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="editEmployeeForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <input type="hidden" id="editEmployeeId" name="id">
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Employee Code</label>
+                            <input type="text" id="editCode" name="employee_code" class="form-control" >
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Employee Name</label>
+                            <input type="text" id="editName" name="employee_name" class="form-control" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Gender</label>
+                            <select id="editGender" name="gender" class="form-select">
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Others">Others</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email</label>
+                            <input type="email" id="editEmail" name="email" class="form-control" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Mobile</label>
+                            <input type="text" id="editMobile" name="mobile" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Designation</label>
+                            <input type="text" id="editDesignation" name="designation" class="form-control" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Join Date</label>
+                            <input type="date" id="editJoinDate" name="join_date" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Status</label>
+                            <div class="form-check mt-4">
+                                <input class="form-check-input" type="checkbox" id="editStatus" name="status" value="active">
+                                <label class="form-check-label" for="editStatus">Active</label>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label">Address</label>
+                            <textarea id="editAddress" name="address" class="form-control" rows="3"></textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Password</label>
+                            <input type="text" id="editPassword" name="password" class="form-control" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+    <!-- PAGINATION -->
+    <div class="d-flex justify-content-between align-items-center mt-3 pagination-wrap">
+    <div id="pageInfo" class="text-muted small">Showing 1 to 10 of 50 entries</div>
+    <nav>
+        <ul class="pagination pagination-sm mb-0" id="pagination"></ul>
+    </nav>
+</div>
+
+</div>
+<script>
+let tableRows = [];
+let filteredRows = [];
+let rowsPerPage = document.getElementById("entriesSelect").value;
+let currentPage = 1;
+
+document.addEventListener("DOMContentLoaded", function () {
+    tableRows = Array.from(document.querySelectorAll(".employee-table tbody tr"));
+    filteredRows = tableRows.slice(); // initial copy
+
+    const entriesSelect = document.getElementById("entriesSelect");
+    rowsPerPage = parseInt(entriesSelect.value);
+
+    entriesSelect.addEventListener("change", function () {
+        rowsPerPage = parseInt(this.value);
+        currentPage = 1;
+        renderTable();
+    });
+
+    // Global search
+    document.getElementById("employeeSearch").addEventListener("input", function () {
+        currentPage = 1;
+        applyFilter(); // triggers renderTable()
+    });
+
+    // Filters
+    document.querySelectorAll("#filterForm input, #filterForm select").forEach(el => {
+        el.addEventListener("input", applyFilter);
+        el.addEventListener("change", applyFilter);
+    });
+
+    // Initial render
+    renderTable();
+});
+
+function applyFilter() {
+    const designation = document.getElementById("filterDesignation").value.trim().toLowerCase();
+    const keyword = document.getElementById("filterKeyword").value.trim().toLowerCase();
+    const dateFrom = document.getElementById("filterDateFrom").value;
+    const dateTo = document.getElementById("filterDateTo").value;
+    const status = document.getElementById("filterStatus").value;
+
+    filteredRows = tableRows.filter(row => {
+        let show = true;
+
+        if (designation && !row.dataset.designation.includes(designation)) show = false;
+        if (status && row.dataset.status !== status) show = false;
+
+        if ((dateFrom || dateTo) && row.dataset.joinDate) {
+            const joinDate = row.dataset.joinDate;
+            if (dateFrom && joinDate < dateFrom) show = false;
+            if (dateTo && joinDate > dateTo) show = false;
+        }
+
+        if (keyword && !row.textContent.toLowerCase().includes(keyword)) show = false;
+
+        return show;
+    });
+
+    currentPage = 1;
+    renderTable();
+}
+
+function renderTable() {
+    const total = filteredRows.length;
+    const totalPages = Math.ceil(total / rowsPerPage) || 1;
+
+    if (currentPage > totalPages) currentPage = totalPages;
+
+    // Hide all rows
+    tableRows.forEach(row => row.style.display = "none");
+
+    // Show current page
+    const start = (currentPage - 1) * rowsPerPage;
+    const end = Math.min(start + rowsPerPage, total);
+    filteredRows.slice(start, end).forEach(row => row.style.display = "");
+
+    // Update info
+    const startEntry = total === 0 ? 0 : start + 1;
+    document.getElementById("pageInfo").textContent =
+        total === 0
+            ? "No entries found"
+            : `Showing ${startEntry} to ${end} of ${total} entries`;
+
+    renderPagination(totalPages);
+}
+
+function renderPagination(totalPages) {
+    const ul = document.getElementById("pagination");
+    ul.innerHTML = "";
+
+    // Previous
+    const prev = document.createElement("li");
+    prev.className = `page-item ${currentPage === 1 ? "disabled" : ""}`;
+    prev.innerHTML = `<a class="page-link" href="#" onclick="${currentPage === 1 ? '' : `changePage(${currentPage - 1}); return false;`}">Previous</a>`;
+    ul.appendChild(prev);
+
+    // Page numbers (limited range)
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, currentPage + 2);
+
+    if (startPage > 1) {
+        ul.appendChild(createPageLink(1));
+        if (startPage > 2) ul.appendChild(createEllipsis());
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+        ul.appendChild(createPageLink(i, i === currentPage));
+    }
+
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) ul.appendChild(createEllipsis());
+        ul.appendChild(createPageLink(totalPages));
+    }
+
+    // Next
+    const next = document.createElement("li");
+    next.className = `page-item ${currentPage === totalPages ? "disabled" : ""}`;
+    next.innerHTML = `<a class="page-link" href="#" onclick="${currentPage === totalPages ? '' : `changePage(${currentPage + 1}); return false;`}">Next</a>`;
+    ul.appendChild(next);
+}
+
+function createPageLink(pageNum, isActive = false) {
+    const li = document.createElement("li");
+    li.className = `page-item ${isActive ? "active" : ""}`;
+    li.innerHTML = `<a class="page-link" href="#" onclick="changePage(${pageNum}); return false;">${pageNum}</a>`;
+    return li;
+}
+
+function createEllipsis() {
+    const li = document.createElement("li");
+    li.className = "page-item disabled";
+    li.innerHTML = '<span class="page-link">...</span>';
+    return li;
+}
+
+function changePage(page) {
+    currentPage = page;
+    renderTable();
+}
+
+// ← Your existing modal/edit functions remain unchanged below
+function loadEmployeeForEdit(id) {
+    fetch(`/get-employee/${id}/`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('editEmployeeId').value = data.id;
+            document.getElementById('editCode').value = data.employee_code;
+            document.getElementById('editName').value = data.employee_name;
+            document.getElementById('editGender').value = data.gender;
+            document.getElementById('editEmail').value = data.email;
+            document.getElementById('editMobile').value = data.mobile;
+            document.getElementById('editDesignation').value = data.designation;
+            document.getElementById('editJoinDate').value = data.join_date;
+            document.getElementById('editAddress').value = data.address || '';
+            document.getElementById('editStatus').checked = data.status;
+            document.getElementById('editPassword').value = data.password;
+        })
+        .catch(() => alert("Failed to load employee data."));
+}
+
+document.getElementById('editEmployeeForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+
+    fetch('/update-employee/', {
+        method: 'POST',
+        body: formData,
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert("Employee updated successfully!");
+            location.reload();
+        } else {
+            alert("Error: " + data.message);
+        }
+    });
+});
+</script>
+
+{% endblock %}

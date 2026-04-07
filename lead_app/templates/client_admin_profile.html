@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block page_title %}
+<h2 class="page-title">
+    Client Admin Profile
+    <span class="breadcrumb-text">Admin • Profile</span>
+</h2>
+{% endblock %}
+
+{% block content %}
+
+<style>
+.profile-card {
+    background:#fff;
+    border-radius:16px;
+    padding:25px;
+    box-shadow:0 6px 20px rgba(0,0,0,.08);
+}
+
+.profile-logo {
+    width:140px;
+    height:140px;
+    border-radius:16px;
+    object-fit:contain;
+    background:#f8f9fa;
+    padding:8px;
+    border:2px dashed #ddd;
+}
+
+.readonly {
+    background:#f9fbfc;
+    border-color:#e9ecef;
+}
+
+.editable {
+    border-color:#e9ecef;
+    transition: all 0.2s;
+}
+
+@media (max-width: 768px) {
+    .top-action { text-align: center !important; width: 100% !important; margin-bottom: 20px; }
+    .logo-wrap { text-align: center; }
+}
+
+</style>
+
+<div class="ms-auto text-end top-action mb-4">
+    <button type="button" class="btn btn-primary" id="editBtn">
+        <i class="fas fa-edit me-2"></i>Edit Profile
+    </button>
+</div>
+
+<div class="profile-card">
+    <div class="logo-wrap text-center mb-4">
+        <img src="{% if client.logo %}/media/{{ client.logo }}{% else %}{% static 'images/default-logo.png' %}{% endif %}"
+             id="logoPreview" class="profile-logo shadow-sm">
+        <small class="text-muted d-block mt-2">Current Logo</small>
+    </div>
+
+    <form id="profileForm" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="row g-4">
+            <!-- Read-only fields -->
+            <div class="col-md-6">
+                <label class="form-label">Client Name</label>
+                <input type="text" class="form-control readonly" value="{{ client.client_name }}" readonly>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Phone (Username)</label>
+                <input type="text" class="form-control readonly" value="{{ client.phone_number }}" readonly>
+            </div>
+
+            <!-- Editable fields -->
+            <div class="col-md-6">
+                <label class="form-label">Business Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control readonly" name="business_name"
+                       value="{{ client.business_name }}"  required readonly>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">GST Number <small class="text-muted">(Optional)</small></label>
+                <input type="text" class="form-control editable" name="gst"
+                       value="{{ client.gst }}" placeholder="e.g. 27ABCDE1234F1Z5" disabled>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">Address <small class="text-muted">(Optional)</small></label>
+                <textarea class="form-control editable" name="address" rows="3" disabled>{{ client.address }}</textarea>
+            </div>
+            
+            <div class="col-12">
+                <label class="form-label">About <small class="text-muted">(Optional)</small></label>
+                <!-- Shown when not editing -->
+                <div class="about-display" id="aboutDisplay">
+                    {{ client.about|default:"No description yet." }}
+                </div>
+                <!-- Hidden textarea – shown only in edit mode -->
+                <textarea class="form-control editable d-none" name="about" rows="5" id="aboutTextarea" disabled>
+{{ client.about }}
+                </textarea>
+            </div>
+
+            <!-- Logo Upload - Only shown in edit mode -->
+            <div class="col-md-6" id="logoUploadField" style="display:none;">
+                <label class="form-label">Change Logo <small class="text-muted">(Optional)</small></label>
+                <input type="file" name="logo_file" class="form-control" accept="image/*" id="logoFileInput">
+                <small class="text-muted">Upload new image to replace current logo • Max 2MB</small>
+            </div>
+        </div>
+
+        <div class="mt-5 text-end action-buttons">
+            <button type="submit" class="btn btn-primary d-none" id="saveBtn">
+                <span class="spinner-border spinner-border-sm me-2 d-none" id="saveSpinner"></span>
+                Save Changes
+            </button>
+            <button type="button" class="btn btn-light d-none" id="cancelBtn">Cancel</button>
+        </div>
+    </form>
+</div>
+
+<script>
+const editBtn = document.getElementById("editBtn");
+const saveBtn = document.getElementById("saveBtn");
+const cancelBtn = document.getElementById("cancelBtn");
+const saveSpinner = document.getElementById("saveSpinner");
+const editables = document.querySelectorAll(".editable");
+const logoUploadField = document.getElementById("logoUploadField");
+const logoPreview = document.getElementById("logoPreview");
+const logoFileInput = document.getElementById("logoFileInput");
+const aboutDisplay  = document.getElementById("aboutDisplay");
+const aboutTextarea = document.getElementById("aboutTextarea");
+// Enter edit mode
+editBtn.onclick = () => {
+    editables.forEach(el => el.disabled = false);
+    aboutDisplay.classList.add("d-none");
+    aboutTextarea.classList.remove("d-none");
+    saveBtn.classList.remove("d-none");
+    cancelBtn.classList.remove("d-none");
+    editBtn.classList.add("d-none");
+    logoUploadField.style.display = "block";
+};
+
+// Cancel → reload page
+cancelBtn.onclick = () => location.reload();
+
+// Live preview when new logo selected
+logoFileInput.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        if (!file.type.startsWith('image/')) {
+            alert("Please select a valid image file.");
+            this.value = '';
+            return;
+        }
+        if (file.size > 2 * 1024 * 1024) {
+            alert("Image must be under 2MB.");
+            this.value = '';
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            logoPreview.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+// Form submit
+document.getElementById("profileForm").onsubmit = function(e) {
+    e.preventDefault();
+
+    const businessName = this.querySelector('[name="business_name"]').value.trim();
+    if (!businessName) {
+        alert("Business name is required.");
+        return;
+    }
+
+    saveBtn.disabled = true;
+    saveSpinner.classList.remove("d-none");
+
+    const formData = new FormData(this);
+
+    fetch("{% url 'save_client_profile' %}", {
+        method: "POST",
+        body: formData,
+        headers: { "X-CSRFToken": "{{ csrf_token }}" }
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message);
+        if (data.success) {
+            location.reload();
+        }
+    })
+    .catch(() => alert("Network error. Please try again."))
+    .finally(() => {
+        saveBtn.disabled = false;
+        saveSpinner.classList.add("d-none");
+    });
+};
+</script>
+
+{% endblock %}

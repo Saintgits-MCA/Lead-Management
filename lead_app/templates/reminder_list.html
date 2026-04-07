@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block page_title %}
+<h2 class="page-title">
+    Reminders List 
+    <span class="breadcrumb-text">Home • Reminders</span>
+</h2>
+{% endblock %}
+
+{% block content %}
+<style>
+.page-card { background:#fff; border-radius:12px; padding:25px; box-shadow:0 4px 12px rgba(0,0,0,0.06); }
+.table-responsive { width:100%; overflow-x:auto; max-height:600px; position:relative; }
+#reminderTable thead th { position:sticky; top:0; background:#f8f9fa; z-index:10; font-weight:600; }
+
+.pagination .page-link { border-radius:6px; margin:0 3px; color:#0d6efd !important; background:#fff; border:1px solid #dee2e6; }
+.pagination .page-link:hover { background:#0d6efd !important; color:#fff !important; }
+.pagination .active .page-link { background:#0d6efd !important; color:#fff !important; }
+.pagination .disabled .page-link { color:#6c757d !important; opacity:0.6; }
+
+@media (max-width:768px) {
+    .top-controls { flex-direction:column; gap:10px; }
+    .top-controls input, .top-controls select { width:100% !important; }
+}
+</style>
+
+<div class="page-card mt-4">
+    <div class="d-flex justify-content-between mb-3">
+        <h4 class="fw-bold mb-0">All Reminders ({{ total_reminders }})</h4>
+    </div>
+
+    <div class="d-flex justify-content-between mb-3 top-controls">
+        <div>
+            Show <select id="entriesSelect" class="form-control d-inline-block" style="width:80px;">
+                <option value="10" selected>10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select> entries
+        </div>
+        <div>
+            <input id="searchInput" type="text" class="form-control" placeholder="Search by ID, Title, Type..." style="width:280px;">
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle" id="reminderTable">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Document ID</th>
+                    <th>Title</th>
+                    <th>Type</th>
+                    <th>Expiry Date</th>
+                    <th>Status</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody id="reminderBody">
+                {% for r in reminder_list %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td><strong>{{ r.document_id }}</strong></td>
+                    <td>{{ r.title }}</td>
+                    <td><span class="badge bg-secondary">{{ r.type }}</span></td>
+                    <td>{{ r.expiry_date }}</td>
+                    <td>
+                        {% if "Expired" in r.status %}
+                            <span class="badge bg-danger">{{ r.status }}</span>
+                        {% elif "today" in r.days_text or "tomorrow" in r.days_text %}
+                            <span class="badge bg-danger text-white">{{ r.status }}</span>
+                        {% else %}
+                            <span class="badge bg-info">{{ r.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-muted small">{{ r.description }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-5">No reminders at this time. All documents are up to date!</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mt-3">
+        <div id="pageInfo" class="text-muted small">Showing 1 to 10 of {{ total_reminders }} entries</div>
+        <nav>
+            <ul class="pagination pagination-sm mb-0" id="pagination"></ul>
+        </nav>
+    </div>
+</div>
+
+<script>
+let tableRows = [];
+let filteredRows = [];
+let rowsPerPage = 10;
+let currentPage = 1;
+
+document.addEventListener("DOMContentLoaded", function () {
+    tableRows = Array.from(document.querySelectorAll("#reminderBody tr"));
+    filteredRows = tableRows.slice();
+
+    const entriesSelect = document.getElementById("entriesSelect");
+    rowsPerPage = parseInt(entriesSelect.value);
+
+    entriesSelect.addEventListener("change", function () {
+        rowsPerPage = parseInt(this.value);
+        currentPage = 1;
+        renderTable();
+    });
+
+    document.getElementById("searchInput").addEventListener("input", function () {
+        currentPage = 1;
+        applySearch();
+    });
+
+    renderTable();
+});
+
+function applySearch() {
+    const term = document.getElementById("searchInput").value.toLowerCase().trim();
+    filteredRows = tableRows.filter(row => row.textContent.toLowerCase().includes(term));
+    currentPage = 1;
+    renderTable();
+}
+
+function renderTable() {
+    const total = filteredRows.length;
+    const totalPages = Math.ceil(total / rowsPerPage) || 1;
+    if (currentPage > totalPages) currentPage = totalPages;
+
+    tableRows.forEach(row => row.style.display = "none");
+    const start = (currentPage - 1) * rowsPerPage;
+    const end = Math.min(start + rowsPerPage, total);
+    filteredRows.slice(start, end).forEach(row => row.style.display = "");
+
+    document.getElementById("pageInfo").textContent =
+        total === 0 ? "No reminders found" : `Showing ${start + 1} to ${end} of ${total} entries`;
+
+    renderPagination(totalPages);
+}
+
+function renderPagination(totalPages) {
+    const ul = document.getElementById("pagination");
+    ul.innerHTML = "";
+
+    ul.appendChild(createPageItem("Previous", currentPage - 1, currentPage === 1));
+
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, currentPage + 2);
+
+    if (startPage > 1) {
+        ul.appendChild(createPageItem(1));
+        if (startPage > 2) ul.appendChild(createEllipsis());
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+        ul.appendChild(createPageItem(i, i, i === currentPage));
+    }
+
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) ul.appendChild(createEllipsis());
+        ul.appendChild(createPageItem(totalPages));
+    }
+
+    ul.appendChild(createPageItem("Next", currentPage + 1, currentPage === totalPages));
+}
+
+function createPageItem(text, pageNum, disabled = false, active = false) {
+    const li = document.createElement("li");
+    li.className = `page-item ${disabled ? "disabled" : ""} ${active ? "active" : ""}`;
+    if (disabled) {
+        li.innerHTML = `<span class="page-link">${text}</span>`;
+    } else {
+        li.innerHTML = `<a class="page-link" href="#" onclick="changePage(${pageNum}); return false;">${text}</a>`;
+    }
+    return li;
+}
+
+function createEllipsis() {
+    const li = document.createElement("li");
+    li.className = "page-item disabled";
+    li.innerHTML = '<span class="page-link">...</span>';
+    return li;
+}
+
+function changePage(page) {
+    currentPage = page;
+    renderTable();
+}
+</script>
+{% endblock %}

@@ -1,0 +1,69 @@
+{% extends 'employee/base.html' %}
+{%load static%}
+{% block page_title %}My Profile{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex align-items-center mb-4">
+            <img src="{% static 'images/profile.png' %}" alt="Profile" class="rounded-circle me-4" style="width:120px; height:120px; object-fit:cover; border:5px solid #0d6efd;">
+            <div>
+                <h3 class="mb-1">{{ employee.employee_name }}</h3>
+                <p class="text-muted mb-1">{{ employee.designation|default:"Employee" }}</p>
+                <span class="badge bg-primary">Employee Code: {{ employee.employee_code }}</span>
+            </div>
+        </div>
+
+        <hr>
+
+        <div class="row">
+            <div class="col-md-6">
+                <table class="table table-borderless">
+                    <tr>
+                        <td><strong>Mobile</strong></td>
+                        <td>{{ employee.mobile }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Email</strong></td>
+                        <td>{{ employee.email|default:"—" }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Gender</strong></td>
+                        <td>{{ employee.gender|default:"—" }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Join Date</strong></td>
+                        <td>{{ employee.join_date|date:"d M Y" }}</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="col-md-6">
+                <table class="table table-borderless">
+                    <tr>
+                        <td><strong>Address</strong></td>
+                        <td>{{ employee.address|default:"—"|linebreaksbr }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Status</strong></td>
+                        <td>
+                            {% if employee.status %}
+                            <span class="badge bg-success">Active</span>
+                            {% else %}
+                            <span class="badge bg-danger">Inactive</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Client</strong></td>
+                        <td>{{ request.session.client_name }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="mt-4 text-center">
+            <a href="{% url 'employee_dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

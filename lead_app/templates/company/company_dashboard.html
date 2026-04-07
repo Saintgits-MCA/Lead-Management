@@ -1,0 +1,300 @@
+{% extends 'company/company_base.html' %}
+
+{% block title %}Company Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+
+<style>
+    .dashboard-card {
+        background: linear-gradient(135deg, #ffffff, #f9fafb);
+        border-radius: 18px;
+        padding: 25px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        transition: 0.3s;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .dashboard-card::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 80px;
+        height: 80px;
+        background: rgba(0,0,0,0.03);
+        border-bottom-left-radius: 100%;
+    }
+
+    .dashboard-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 18px 45px rgba(0,0,0,0.12);
+    }
+
+    .dashboard-card i {
+        font-size: 26px;
+        padding: 14px;
+        border-radius: 14px;
+        color: #fff;
+    }
+
+    .bg-blue { background: #6366f1; }
+    .bg-orange { background: #f97316; }
+
+    .dashboard-card h3 {
+        margin: 18px 0 4px;
+        font-weight: 700;
+        font-size: 28px;
+    }
+
+    .dashboard-card p {
+        margin: 0;
+        color: #6b7280;
+        font-weight: 500;
+        font-size: 14px;
+    }
+
+    .trend {
+        font-size: 12px;
+        font-weight: 600;
+        margin-top: 6px;
+    }
+
+    .trend.up { color: #16a34a; }
+    .trend.down { color: #dc2626; }
+
+    .section-card {
+        background: #fff;
+        border-radius: 18px;
+        padding: 22px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    }
+
+    .section-title {
+        font-weight: 700;
+        margin-bottom: 15px;
+    }
+
+    .quick-action {
+        background: #f8fafc;
+        border-radius: 14px;
+        padding: 18px;
+        text-align: center;
+        transition: 0.3s;
+        cursor: pointer;
+    }
+
+    .quick-action:hover {
+        background: #eef2ff;
+        transform: translateY(-3px);
+    }
+
+    .quick-action i {
+        font-size: 22px;
+        color: #6366f1;
+        margin-bottom: 6px;
+    }
+    /* Toast Styling for Messages */
+.toast {
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.toast-body.success {
+    background-color: #d4edda !important;  /* Green for success */
+    color: #155724 !important;
+}
+
+.toast-body.error {
+    background-color: #f8d7da !important;  /* Red for error */
+    color: #721c24 !important;
+}
+
+.toast-body.warning {
+    background-color: #fff3cd !important;  /* Yellow for warning */
+    color: #856404 !important;
+}
+
+.toast-body.info {
+    background-color: #d1ecf1 !important;  /* Blue for info */
+    color: #0c5460 !important;
+}
+@media (max-width: 876px) {
+    .toast-wrapper {
+        padding-right: 50px;
+        right:0;
+    }
+}
+</style>
+{% if messages %}
+<div class="position-relative top-0" style="z-index: 9999;margin-left:80%;">
+    <div class="toast-container">
+        {% for message in messages %}
+        <div class="toast align-items-center text-white border-0 mb-2 show" role="alert" data-bs-autohide="true" data-bs-delay="4000">
+            <div class="d-flex toast-body {{ message.tags }}">
+                <div class="toast-body {{ message.tags }}">
+                    {{ message }}
+                </div>
+                <button type="button" class="btn-close btn-close-dark border-black me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+<!-- ================= KPI CARDS ================= -->
+<div class="row g-4 mb-4">
+
+    <div class="col-md-3">
+        <div class="dashboard-card">
+            <i class="fas fa-users bg-blue"></i>
+            <h3>{{ stats.total_clients }}</h3>
+            <p>Total Clients</p>
+            <div class="trend up">
+                <i class="fas fa-arrow-up"></i> Growing steadily
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="dashboard-card">
+            <i class="fas fa-user-slash bg-danger"></i>
+            <h3>{{ stats.suspended_clients }}</h3>
+            <p>Suspended Clients</p>
+            <div class="trend down">
+                <i class="fas fa-arrow-down"></i> Needs attention
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="dashboard-card">
+            <i class="fas fa-bell bg-orange"></i>
+            <h3>{{ stats.reminders }}</h3>
+            <p>Upcoming Reminders</p>
+            <div class="trend up">
+                <i class="fas fa-clock"></i> Today & this week
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="dashboard-card">
+            <i class="fas fa-credit-card bg-success"></i>
+            <h3>{{ stats.payment_reminders }}</h3>
+            <p>Payment Reminders</p>
+            <div class="trend up">
+                <i class="fas fa-wallet"></i> Pending collections
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ================= MAIN CONTENT ================= -->
+<div class="row g-4">
+
+    <!-- RECENT CLIENTS -->
+    <div class="col-md-8">
+        <div class="section-card">
+            <h5 class="section-title">Recent Clients</h5>
+
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Client</th>
+                        <th>Business</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                   {% for client in recent_clients %}
+                    <tr>
+                        <td class="fw-semibold">
+                            {{ client.client_name|default:client.phone_number }}
+                        </td>
+                        <td>
+                            {{ client.business_name|default:"—" }}
+                        </td>
+                        <td>
+                            {% if client.status == "Active" %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-danger">Suspended</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'company_clients' %}?phone={{ client.phone_number }}"
+                               class="btn btn-sm btn-outline-primary"
+                               title="View Client">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted py-4">
+                            No clients added yet.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- QUICK ACTIONS -->
+    <div class="col-md-4">
+        <div class="section-card">
+            <h5 class="section-title">Quick Actions</h5>
+
+            <div class="row g-3">
+                <div class="col-6">
+                    <a class="text-decoration-none text-dark" href="{%url 'create_client'%}"><div class="quick-action">
+                        <i class="fas fa-plus-circle"></i>
+                        <div class="fw-semibold">Add Client</div>
+                    </div></a>
+                </div>
+
+                <div class="col-6">
+                    <div class="quick-action">
+                        <i class="fas fa-bell"></i>
+                        <div class="fw-semibold">Add Reminder</div>
+                    </div>
+                </div>
+
+                <div class="col-6">
+                    <div class="quick-action">
+                        <i class="fas fa-file-invoice"></i>
+                        <div class="fw-semibold">Payments</div>
+                    </div>
+                </div>
+
+                <div class="col-6">
+                    <div class="quick-action">
+                        <i class="fas fa-cog"></i>
+                        <div class="fw-semibold">Settings</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+<script>
+    // Auto-initialize and show Bootstrap toasts
+    document.addEventListener("DOMContentLoaded", function () {
+        const toastElList = document.querySelectorAll('.toast');
+        toastElList.forEach(toastEl => {
+            const toast = new bootstrap.Toast(toastEl, {
+                delay: 4000
+            });
+            toast.show();
+        });
+    });
+</script>
+{% endblock %}

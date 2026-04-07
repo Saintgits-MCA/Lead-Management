@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block page_title %}
+<h2 class="page-title">
+    Settings 
+    <span class="breadcrumb-text">Home • Settings</span>
+</h2>
+{% endblock %}
+
+{% block content %}
+<style>
+.page-card { background:#fff; border-radius:12px; padding:30px; box-shadow:0 4px 12px rgba(0,0,0,0.06); margin-top:20px; }
+.setting-section { margin-bottom:40px; }
+.image-preview { max-width:100%; max-height:300px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.1); margin-top:15px; }
+.upload-label { font-weight:600; margin-bottom:8px; display:block; }
+</style>
+
+<div class="page-card">
+    <h4 class="fw-bold mb-4">Company Settings</h4>
+
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <!-- Header Image -->
+        <div class="setting-section">
+        <h5 class="mb-3">Header Image (Top Banner / Logo)</h5>
+        <label class="upload-label">Upload New Header Image</label>
+        <input type="file" name="header_image" class="form-control" accept="image/*">
+        <small class="text-muted">Recommended: 1200x300px or larger, PNG/JPG</small>
+
+        {% if header_image_url %}
+        <div class="mt-3">
+            <p><strong>Current Header Image:</strong></p>
+            <img src="{{ header_image_url }}" alt="Header Image" class="image-preview">
+            <div class="mt-2">
+                <button type="submit" name="delete_header" value="1" class="btn btn-danger btn-sm"
+                        onclick="return confirm('Are you sure you want to delete the header image?')">
+                    <i class="fas fa-trash me-1"></i> Delete Header Image
+                </button>
+            </div>
+        </div>
+        {% else %}
+        <p class="text-muted mt-2">No header image uploaded yet.</p>
+        {% endif %}
+    </div>
+
+    <hr>
+
+    <!-- Quotation Footer Image -->
+    <div class="setting-section">
+        <h5 class="mb-3">Quotation Footer Image (Signature / Stamp)</h5>
+        <label class="upload-label">Upload New Footer Image</label>
+        <input type="file" name="quotation_footer_image" class="form-control" accept="image/*">
+        <small class="text-muted">Recommended: Transparent PNG, max 800x200px</small>
+
+        {% if footer_image_url %}
+        <div class="mt-3">
+            <p><strong>Current Footer Image:</strong></p>
+            <img src="{{ footer_image_url }}" alt="Footer Image" class="image-preview">
+            <div class="mt-2">
+                <button type="submit" name="delete_footer" value="1" class="btn btn-danger btn-sm"
+                        onclick="return confirm('Are you sure you want to delete the footer image?')">
+                    <i class="fas fa-trash me-1"></i> Delete Footer Image
+                </button>
+            </div>
+        </div>
+        {% else %}
+        <p class="text-muted mt-2">No footer image uploaded yet.</p>
+        {% endif %}
+    </div>
+
+    <div class="mt-4">
+        <button type="submit" class="btn btn-primary px-5">Save Settings</button>
+        <a href="{% url 'dashboard' %}" class="btn btn-secondary px-5 ms-2">Cancel</a>
+    </div>
+</form>
+</div>
+{% endblock %}

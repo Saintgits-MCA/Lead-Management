@@ -1,0 +1,619 @@
+{%load static%}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Quotation {{ quotation.quotation_number }}</title>
+<script src="{%static 'js/html2pdf.bundle.min.js'%}"></script>
+<link rel="stylesheet" href="{%static 'css/bootstrap.min.css'%}">
+<link rel="stylesheet" href="{%static 'css/all.min.css'%}">
+<link rel="icon" href="{%static 'images/nexgen_crm2.png'%}">
+
+<style>
+@page { margin: 1.5cm;margin-top:1.5px; }
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #fff;
+    color: #333;
+    font-size: 13px;
+}
+
+.container {
+    width: 100%;
+}
+
+/* ================= HEADER ================= */
+
+
+.header-left,
+.header-right {
+    display: table-cell;
+    vertical-align: top;
+    padding:0;
+        line-height: 1.2;        
+}
+
+.header-left { width: 60%;    padding:0;
+}
+.header-right { width: 40%; text-align: right;    padding:0;
+ }
+
+
+
+.company-name {
+    font-size: 20px;
+    font-weight: bold;
+    color: #c41e3a;
+}
+
+.company-details {
+    font-size: 12px;
+    color: #555;
+}
+
+/* ================= META ================= */
+.quotation-title {
+    font-size: 26px;
+    font-weight: bold;
+    color: #c41e3a;
+    text-align:center;
+    margin-bottom: 10px;
+}
+
+.quotation-meta {
+    padding: 8px;
+    border-left: 4px solid #c41e3a;
+    display: inline-block;
+    width: 100%;
+}
+
+.meta-row {
+    font-size: 12px;
+    margin-bottom: 6px;
+}
+
+.meta-label {
+    color: #666;
+    display: inline-block;
+    width: 95px;
+}
+
+/* ================= BILL TO ================= */
+.section-title {
+    font-size: 12px;
+    font-weight: bold;
+    color: #c41e3a;
+    border-bottom: 2px solid #c41e3a;
+    display: inline-block;
+    margin-bottom: 8px;
+}
+
+.bill-to-content {
+    font-size: 13px;
+    color: #555;
+    margin-bottom: 25px;
+    top:0;
+}
+
+/* ================= ITEMS TABLE ================= */
+.items-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid #ddd;
+}
+
+.items-table thead {
+    background: #c41e3a;
+    color: #fff;
+}
+
+.items-table th,
+.items-table td {
+    padding: 6px 8px; 
+    border-bottom: 1px solid #eee;
+    font-size: 13px;
+    color:black;
+}
+
+@media print {
+    body { margin: 0; padding: 0; }
+    .no-print { display: none !important; }
+    /* Force page breaks where needed */
+    .page-break { page-break-before: always; }
+    /* Avoid breaking inside tables/sections */
+    table, .totals-section, .terms-conditions { page-break-inside: avoid; }
+}
+
+.items-table th { text-transform: uppercase; font-size: 12px; }
+
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+
+.product-name { font-weight: bold; color: #333; }
+.product-category { font-size: 11px; color: #888; }
+
+/* ================= TOTALS ================= */
+.totals-section {
+    width: 360px;
+    float: right;
+    margin-top: 20px;
+}
+
+.totals-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid #ddd;
+}
+
+.totals-table td {
+    padding: 3px;
+    font-size: 13px;
+}
+
+.totals-table td:first-child {
+    background: #f5f5f5;
+    font-weight: bold;
+}
+
+.grand-total td {
+    font-size: 15px;
+    font-weight: bold;
+}
+
+/* ================= AMOUNT WORDS ================= */
+.amount-words {
+    margin-top: 25px;
+    padding: 12px;
+    background: #f0f8ff;
+    border-left: 5px solid #c41e3a;
+    clear: both;
+}
+
+.amount-words-label {
+    font-size: 12px;
+    font-weight: bold;
+    color: #c41e3a;
+}
+
+/* ================= FOOTER ================= */
+.footer {
+    margin-top: 35px;
+    border-top: 1px solid #ddd;
+    padding-top: 15px;
+    font-size: 12px;
+}
+
+.thank-you {
+    text-align: center;
+    margin-top: 10px;
+    font-weight: bold;
+    color: #c41e3a;
+}
+.header {
+    display: table;
+    width: 100%;
+    top:0;
+    padding-bottom: 2px;     
+    margin-bottom: 6px;
+    padding-bottom: 2px;       
+    border-bottom: 2px solid #c41e3a;
+}
+.logo {
+    max-height: 50px; 
+    display: block;   
+    width:auto;         
+    margin-bottom: 2px;          
+}
+
+.company-name {
+    font-size: 18px;              
+    margin-bottom: 2px;
+    line-height: 1.2; 
+}
+
+.company-details {
+    font-size: 11.5px;
+    line-height: 1.25;         
+}
+
+/* ================= PRIVACY POLICY ================= */
+{% comment %} .terms-conditions {
+    margin-top: 25px;
+    padding: 14px 18px;
+    font-size: 11.5px;
+    line-height: 1.6;
+    color: #444;
+    background: #fafafa;
+    border-left: 4px solid #c41e3a;
+} {% endcomment %}
+
+.terms-conditions-title {
+    font-size: 16px;
+    font-weight: bold;
+    color: red;
+    margin-bottom: 10px;
+    text-transform: none;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 4px;
+    text-align:center;
+}
+
+.terms-conditions {
+    margin-top: 30px;
+    padding: 0;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #333;
+    text-align: justify;
+    page-break-before: always;
+}
+
+
+
+.terms-conditions ul,
+.terms-conditions ol {
+    margin-left: 18px;
+}
+
+.terms-conditions p,
+.terms-conditions li {
+    text-align: justify;
+    text-justify: inter-word;
+}
+
+.terms-conditions ul {
+    margin: 6px 0 6px 18px;
+    padding: 0;
+}
+
+.terms-conditions li {
+    margin-bottom: 4px;
+}
+.terms-conditions {
+    page-break-before: always;
+}
+
+.notes{
+    margin-top: 25px;
+    padding: 12px;
+    background: #f0f8ff;
+    border-left: 5px solid #c41e3a;
+    clear: both;
+    font-weight:200;
+}
+
+img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        @media print {
+            body { margin: 0; padding: 0; }
+            .no-print { display: none !important; }
+            table, .totals-section, .terms-conditions { page-break-inside: avoid; }
+        }
+
+</style>
+<style>
+        @page { 
+            size: A4; 
+            margin: 1.5cm; 
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            color: #333;
+            font-size: 13px;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 215mm; /* A4 width */
+            margin: 0 auto;
+        }
+
+        .no-print {
+            margin-bottom: 20px;
+            text-align: right;
+        }
+
+        .btn {
+            margin-left: 10px;
+        }
+
+        /* Your existing styles – keep all of them */
+        .header-left, .header-right { display: table-cell; vertical-align: top; padding:0; line-height: 1.2; }
+        .header-left { width: 60%; }
+        .header-right { width: 40%; text-align: right; }
+        .company-name { font-size: 20px; font-weight: bold; color: #c41e3a; }
+        .quotation-title { font-size: 26px; font-weight: bold; color: #c41e3a; text-align:center; margin-bottom: 10px; }
+        .items-table { width: 100%; border-collapse: collapse; border: 1px solid #ddd; }
+        .items-table thead { background: #c41e3a; color: #fff; }
+        .items-table th, .items-table td { padding: 6px 8px; border-bottom: 1px solid #eee; }
+        .totals-section { width: 360px; float: right; margin-top: 20px; }
+        .amount-words { margin-top: 25px; padding: 12px; background: #f0f8ff; border-left: 5px solid #c41e3a; }
+        .footer { margin-top: 35px; border-top: 1px solid #ddd; padding-top: 15px; font-size: 12px; }
+        .logo { max-height: 50px; display: block; width: auto; margin-bottom: 2px; }
+
+        @media print {
+            .no-print { display: none !important; }
+            body { margin: 0; padding: 0; }
+            .page-break { page-break-before: always; }
+            table, .totals-section, .terms-conditions { page-break-inside: avoid; }
+        }
+
+
+@page { size: A4; margin: 1.5cm; }
+        body  { margin: 0; padding: 0; background: #fff; font-family: Arial, Helvetica, sans-serif; font-size: 13px; color: #333; }
+        /* Force background colours to print */
+        * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+        
+.spec-cell{
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: break-word;
+}
+</style>
+</head>
+
+<body>
+<!-- PDF Content -->
+<div id="pdfContent">
+<div class="container">
+<div class="pdf-header">
+    {% if client.header_image %}
+        <img src="media/{{ client.header_image }}" style="max-width:100%; margin-bottom:10px;">
+    {% endif %}
+
+    <div class="header">
+        <div class="header-left">
+            {% if client.logo %}
+                <img src="/media/{{ client.logo }}" class="logo">
+            {% endif %}
+            <div class="company-name">{{ client.business_name|default:client.client_name }}</div>
+            <div class="company-details">
+                {{ client.address|linebreaksbr }}<br>
+                Email: {{ client.email }} | Phone: {{ client.phone_number }}<br>
+                <strong>GST No:</strong> {{ client.gst }}
+            </div>
+        </div>
+                <div class="float-end">
+            <button id="downloadPdfBtn" class="no-print btn btn-outline-danger btn-sm ms-auto" data-quotation-id="{{ quotation.id }}">
+                <i class="fas fa-file-pdf"></i> Download PDF
+            </button>
+      
+            <button id="printBtn" class="btn btn-outline-dark btn-sm no-print mt-0">
+                <i class="fas fa-print"></i> Print
+            </button>
+                   {% comment %} <a href="{%url 'leads'%}"><button id="backBtn" class="no-print btn btn-primary btn-sm ms-auto" data-quotation-id="{{ quotation.id }}">
+                <i class="fas fa-arrow-left"></i> Back
+            </button></a> {% endcomment %}
+        </div>
+    </div>
+  
+</div>
+
+
+    {% comment %} <div class="header-right">
+        <div class="quotation-meta">
+            <div class="meta-row"><span class="meta-label">Quotation No:</span> QUO-{{ quotation.id }}</div>
+            <div class="meta-row"><span class="meta-label">Date:</span> {{ quotation.created_at|date:"d-m-Y" }}</div>
+            <div class="meta-row"><span class="meta-label">Valid Until:</span> {{ quotation.valid_upto|date:"d-m-Y" }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- BILL TO -->
+<div class="section-title">Bill To</div>
+<div class="bill-to-content">
+    <strong>{{ quotation.client_name }}</strong><br>
+    {{ quotation.client_address|linebreaksbr }}<br>
+    Phone: {{ quotation.client_phone }}<br>
+    Email: {{ quotation.client_email }}
+</div> {% endcomment %}
+<hr style="margin:6px 0 8px 0;">
+<h2 class="text-center mt-3" style="color:#c41e3a;font-size:25px;">Quotation</h2>
+<table width="100%" style="margin-bottom:10px;">
+<tr>
+    <td width="50%" vertical-align="top">
+         <b style="font:15px;">Client Name:</b><br>
+        <strong>{{ quotation.client_name }}</strong><br>
+        {{ quotation.client_address|linebreaksbr }}<br>
+        Phone: {{ quotation.client_phone }}<br>
+        Email: {{ quotation.client_email }}
+    </td>
+
+    <td width="50%" valign="top" align="right">
+        <b style="font:15px;">Quotation Details:</b><br>
+        Quotation No: <strong>{{ quotation.quotation_number }}</strong><br>
+        Date: <strong>{{ quotation.created_at|date:"d-m-Y" }}</strong><br>
+        Version: {{ quotation.version }}
+    </td>
+</tr>
+</table>
+
+<!-- ITEMS -->
+<table class="items-table">
+<thead>
+<tr  class="text-white">
+    <th class="text-center text-white" width="4%">#</th>
+    <th width="30%" class="text-white">Product</th>
+    <th  width="20%" class="text-white">Specification</th>
+    <th width="12%" class="text-white">HSN</th>
+    <th class="text-center text-white" width="12%">Qty</th>
+    <th class="text-right text-white" width="12%">Rate</th>
+
+    {% if show_cgst_sgst %}
+        <th class="text-center text-white" width="8%">CGST<br>%</th>
+        <th class="text-center text-white" width="8%">SGST<br>%</th>
+    {% endif %}
+    {% if show_igst %}
+        <th class="text-center text-white" width="8%">IGST<br>%</th>
+    {% endif %}
+
+    <th class="text-center text-white" width="15%">Total<br>(Incl. GST)</th>
+</tr>
+</thead>
+<tbody>
+{% for item in items %}
+<tr>
+    <td class="text-center">{{ forloop.counter }}</td>
+    <td>
+        <span class="product-name">{{ item.product.name }}
+        {% if item.description %}<br><small>{{ item.description }}</small>{% endif %}</span>
+    </td>
+   <td class="spec-cell ps-3">{{ item.spec|default:' –' }}</td>
+    <td>{{ item.product.hsn_code }}</td>
+    <td class="text-center">{{ item.quantity }}{% if item.unit %} {{ item.unit }}{% endif %}</td>
+    <td class="text-right">{{ item.rate|floatformat:2 }}</td>
+
+    {% if show_cgst_sgst %}
+        <td class="text-center">{% if item.cgst > 0 %}{{ item.cgst_percent|floatformat:2 }}{% else %}-{% endif %}</td>
+        <td class="text-center">{% if item.sgst > 0 %}{{ item.sgst_percent|floatformat:2 }}{% else %}-{% endif %}</td>
+    {% endif %}
+    {% if show_igst %}
+        <td class="text-center">{% if item.igst > 0 %}{{ item.igst_percent|floatformat:2 }}{% else %}-{% endif %}</td>
+    {% endif %}
+
+    <td class="text-right">{{ item.row_total|floatformat:2 }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+
+<!-- TOTALS -->
+<div class="totals-section">
+<table class="totals-table">
+<tr>
+    <td>Subtotal</td>
+    <td class="text-right">Rs. {{ quotation.subtotal|floatformat:2 }}</td>
+</tr>
+
+{% if quotation.igst %}
+<tr>
+    <td>IGST </td>
+    <td class="text-right">Rs. {{ quotation.igst|floatformat:2 }}</td>
+</tr>
+{% else %}
+    {% if quotation.cgst %}
+    <tr>
+        <td>CGST</td>
+        <td class="text-right">Rs. {{ quotation.cgst|floatformat:2 }}</td>
+    </tr>
+    {% endif %}
+    {% if quotation.sgst %}
+    <tr>
+        <td>SGST</td>
+        <td class="text-right">Rs. {{ quotation.sgst|floatformat:2 }}</td>
+    </tr>
+    {% endif %}
+{% endif %}
+
+<tr class="grand-total">
+    <td>Grand Total</td>
+    <td class="text-right">Rs. {{ quotation.total|floatformat:2 }}</td>
+</tr>
+</table>
+
+</div>
+
+<div class="amount-words">
+    <div class=""><b style="color:red;">Amount in Words:</b> <strong>{{ amount_words }}</strong></div>
+</div>
+{%if quotation.notes%}
+<div class="notes"><b class="fw-bold">Notes:</b> {{quotation.notes}}</div>
+{%endif%}
+<div class="pdf-footer">
+    <div class="footer">
+        <span style="font-size:15px;font-weight:bold;">
+            Valid upto {{ quotation.valid_upto|date:"d-m-Y" }}.
+        </span>
+        <div class="thank-you">Thank you for your business!</div>
+    </div>
+
+    {% if client.quotation_footer_image %}
+        <div style="text-align:center; margin-top:20px;">
+            <img src="media/{{ client.quotation_footer_image }}" style="max-height:150px;">
+        </div>
+    {% endif %}
+
+{% if terms_conditions and terms_conditions.content %}
+<div class="terms-conditions">
+    <div class="terms-conditions-title" style="padding-top:50px;">
+        Terms and Conditions
+    </div>
+
+    <div style="font-size:12px; text-align:justify; text-justify:inter-word;">
+        {{ terms_conditions.content|linebreaks|safe }}
+    </div>
+</div>
+{% endif %}
+</div>
+</div>
+
+<script>
+
+        // Download PDF
+        document.getElementById('downloadPdfBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            const btn = this;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin d-none"></i> Generating...';
+            btn.disabled = true;
+            const noPrintEls = document.querySelectorAll('.no-print');
+            noPrintEls.forEach(el => el.style.setProperty('display', 'none', 'important'));
+
+            btn.classList.add("d-none");
+            const element = document.getElementById('pdfContent');
+            const customerName = "{{ quotation.client_name|default:'Customer' }}";
+            const quotationNo = "{{ quotation.quotation_number|default:'Unknown' }}";
+            const quotationDate = "{{ quotation.created_at|date:'Y-m-d' }}";  // quotation date (not today)
+            const fileName = `Quotation_${customerName}_${quotationNo}_${quotationDate}.pdf`;
+            html2pdf()
+                .from(element)
+                .set({
+                    margin: 10,
+                    filename: `Quotation_${customerName}_${quotationNo}_${quotationDate}.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { 
+                        scale: 2,
+                        useCORS: true,          // Very important for images
+                        logging: false,
+                        allowTaint: false
+                    },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+                })
+                .save()
+                .then(() => {
+                    noPrintEls.forEach(el => el.style.removeProperty('display'));
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    btn.classList.remove("d-none");
+                })
+                .catch(err => {
+                    console.error('PDF generation failed:', err);
+                    alert('Failed to generate PDF. Check console for details.');
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                });
+        });
+
+         // Print
+        document.getElementById('printBtn').addEventListener('click', function() {
+            window.focus();
+            window.print();
+            // Close the helper window after the dialog is dismissed
+            window.onafterprint = function () { window.close(); };
+            printWindow.document.close();
+        });
+        document.querySelectorAll('.spec-cell').forEach(el=>{
+    el.innerHTML = el.innerHTML.replaceAll(',', '<br>');
+});
+    </script>
+</body>
+</html>

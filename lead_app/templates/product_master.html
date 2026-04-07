@@ -1,0 +1,539 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block page_title %}
+<h2 class="page-title">
+    Product Master 
+    <span class="breadcrumb-text">Leads • Product Master</span>
+</h2>
+{% endblock page_title %}
+
+{% block content %}
+
+<style>
+/* ================= EXISTING STYLES (UNCHANGED) ================= */
+.page-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+.action-btn {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+}
+.btn-edit { background: #0d6efd; color: #fff; }
+.btn-delete { background: #dc3545; color: #fff; }
+
+.pagination .page-link {
+    border-radius: 6px;
+    margin: 0 3px;
+    color: #fff;
+}
+.pagination .active .page-link {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+/* ================= RESPONSIVE FIXES ONLY ================= */
+
+/* Header & Add Button */
+@media (max-width: 768px) {
+    .page-card > .d-flex:first-child {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+}
+
+/* Entries + Search */
+@media (max-width: 768px) {
+    .top-controls {
+        flex-direction: column;
+        gap: 10px;
+        align-items: stretch;
+    }
+
+    .top-controls input,
+    .top-controls select {
+        width: 100% !important;
+    }
+}
+
+/* Table Responsive */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+#productTable th,
+#productTable td {
+    white-space: nowrap;
+}
+
+/* Action buttons stack on very small screens */
+@media (max-width: 576px) {
+    #productTable td:last-child {
+        display: flex;
+        gap: 6px;
+    }
+
+    .action-btn {
+        padding: 4px 8px;
+        font-size: 12px;
+    }
+}
+
+/* Modal full width on mobile */
+@media (max-width: 576px) {
+    .modal-dialog {
+        max-width: 95%;
+        margin: auto;
+    }
+}
+/* ================= PAGINATION FIX (HIGHLIGHTED CHANGES) ================= */
+.pagination .page-link {
+    border-radius: 6px;
+    margin: 0 3px;
+    color: #0d6efd !important;           /* ← Changed from #fff to blue */
+    background-color: #fff;              /* ← White background */
+    border: 1px solid #dee2e6;           /* ← Light border */
+    transition: all 0.2s ease;
+}
+
+.pagination .page-link:hover {
+    background-color: #0d6efd !important; /* ← Blue on hover */
+    color: #fff !important;              /* ← White text on hover */
+    border-color: #0d6efd;
+}
+
+.pagination .page-item.disabled .page-link {
+    color: #6c757d !important;            /* ← Grey for disabled (Previous/Next when at end) */
+    background-color: #fff;
+    border-color: #dee2e6;
+    opacity: 0.6;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #0d6efd !important;
+    border-color: #0d6efd !important;
+    color: #fff !important;
+    font-weight: 600;
+}
+
+.pagination .page-item.disabled .page-link:hover {
+    background-color: #fff !important;
+    color: #6c757d !important;
+    cursor: not-allowed;
+}
+
+</style>
+<!-- Toast Container -->
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;">
+    <div id="liveToast" class="toast" role="alert">
+        <div class="toast-header d-flex align-items-center justify-content-between">
+            <strong class="me-auto" id="toastTitle">Notification</strong>
+            <button type="button" class="btn btn-danger ms-auto" data-bs-dismiss="toast"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="toast-body" id="toastBody"></div>
+    </div>
+</div>
+
+<div class="page-card mt-3">
+    <div class="d-flex justify-content-between mb-3 flex-wrap gap-2">
+        <h4 class="fw-bold mb-0">Product Master</h4>
+        <button class="btn btn-primary px-3" data-bs-toggle="modal" data-bs-target="#productModal" onclick="openAddModal()">
+            <i class="fas fa-plus me-1"></i> Add Product
+        </button>
+    </div>
+
+    <div class="d-flex justify-content-between mb-3 top-controls">
+        <div>
+            Show
+            <select id="entriesSelect" class="form-control d-inline-block" style="width:80px;">
+                <option value="10" selected>10</option><option value="25">25</option><option value="50">50</option><option value="100">100</option>
+            </select>
+            entries
+        </div>
+        <div>
+            <input id="searchInput" type="text" class="form-control" placeholder="Search..." style="width:220px;">
+        </div>
+    </div>
+
+    <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+    <table class="table table-hover align-middle sticky-head" id="productTable">
+            <thead class="table-light">
+                <tr>
+                    <th>No</th>
+                    <th>Product</th>
+                    <th>HSN Code</th>
+                    <th>Rate (₹)</th>
+                    <th>GST Type</th>
+                    <th>GST %</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="productBody">
+                {% for p in products %}
+                <tr data-id="{{ p.id }}">
+                    <td>{{ forloop.counter }}</td>
+                    <td class="pname">{{ p.name }}</td>
+                    <td class="phsn">{{ p.hsn_code|default:"-" }}</td>
+                    <td>{{ p.rate }}</td>
+                    <td>{{ p.gst_type }}</td>
+                    <td>{{ p.gst|floatformat:0 }}</td>
+                    <td>
+                        <!-- FIXED: Added data-bs-toggle and data-bs-target -->
+                        <button class="action-btn btn-edit btn-sm me-1"
+                                data-bs-toggle="modal"
+                                data-bs-target="#productModal"
+                                onclick="openEditModal({{ p.id }},'{{ p.name|escapejs }}', '{{ p.hsn_code|default:'' }}', '{{ p.rate }}','{{ p.gst_type }}','{{ p.gst }}')">
+                            <i class="bi bi-pencil-fill"></i>
+                        </button>
+                        <button class="action-btn btn-delete btn-sm" onclick="deleteProduct({{ p.id }})">
+                            <i class="bi bi-trash-fill"></i>
+                        </button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="text-center py-4 text-muted">No products added yet</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <!-- Pagination -->
+<div class="d-flex justify-content-between align-items-center mt-3">
+    <div id="pageInfo" class="text-muted small">
+        {% comment %} Showing 1 to 10 of 50 entries {% endcomment %}
+
+    </div>
+    <nav>
+        <ul class="pagination pagination-sm mb-0" id="pagination"></ul>
+    </nav>
+</div>
+</div>
+
+<!-- Single Modal for Add & Edit -->
+<div class="modal fade" id="productModal">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius:12px;">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="modalTitle">Add Product</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="productId">
+                <div class="mb-3">
+                    <label class="fw-semibold">Product Name</label>
+                    <input type="text" id="productName" class="form-control" placeholder="Enter product name">
+                    <small id="duplicateWarning" class="text-danger mt-1 d-none">This product already exists!</small>
+                </div>
+                <div class="mb-3">
+                 <div class="mb-3">
+    <label class="fw-semibold">HSN Code</label>
+    <input type="text"
+           id="productHsn"
+           class="form-control"
+           placeholder="Enter HSN Code">
+</div>
+                </div>
+                <div class="mb-3">
+                    <label class="fw-semibold">Rate (₹)</label>
+                    <input type="number" step="0.01" id="productRate" class="form-control" placeholder="Enter rate">
+                </div>
+                <div class="mb-3">
+                    <label class="fw-semibold">GST Type</label>
+                    <select id="productGstType" class="form-select">
+                        <option value="GST">GST</option>
+                        <option value="IGST">IGST</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="fw-semibold">GST %</label>
+                    <input type="number" step="0.01" id="productGst" class="form-control" placeholder="Enter GST %">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary px-4" id="saveProductBtn">Save</button>
+                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Toast function with proper colors
+function showToast(title, message, type = 'success') {
+    const toastEl = document.getElementById('liveToast');
+    const header = toastEl.querySelector('.toast-header');
+    document.getElementById('toastTitle').textContent = title;
+    document.getElementById('toastBody').textContent = message;
+
+    // Reset and apply type
+    header.style.backgroundColor = '';
+    header.style.color = '';
+    if (type === 'success') {
+        header.style.backgroundColor = '#16a34a';
+        header.style.color = 'white';
+    } else if (type === 'error') {
+        header.style.backgroundColor = '#dc2626';
+        header.style.color = 'white';
+    }
+
+    const toast = new bootstrap.Toast(toastEl, { delay: 4000 });
+    toast.show();
+}
+
+let isEdit = false;
+let currentId = null;
+
+// List of existing product names (for duplicate check)
+const existingNames = [
+    {% for p in products %}
+    "{{ p.name|lower }}",
+    {% endfor %}
+].filter(Boolean);
+
+function openAddModal() {
+    isEdit = false;
+    currentId = null;
+    document.getElementById("modalTitle").textContent = "Add Product";
+    document.getElementById("productId").value = "";
+    document.getElementById("productName").value = "";
+    document.getElementById("productHsn").value = "";
+    document.getElementById("productRate").value = "";
+    document.getElementById("productGstType").value = "GST";
+    document.getElementById("productGst").value = "";
+    document.getElementById("duplicateWarning").classList.add("d-none");
+}
+
+function openEditModal(id, name,hsn, rate, gst_type, gst) {
+    isEdit = true;
+    currentId = id;
+
+    const nameInput = document.getElementById("productName");
+
+    document.getElementById("modalTitle").textContent = "Edit Product";
+    document.getElementById("productId").value = id;
+    nameInput.value = name;
+    nameInput.dataset.original = name.toLowerCase(); // ✅ STORE ORIGINAL NAME
+    document.getElementById("productHsn").value = hsn; 
+    document.getElementById("productRate").value = rate;
+    document.getElementById("productGstType").value = gst_type;
+    document.getElementById("productGst").value = gst;
+    document.getElementById("duplicateWarning").classList.add("d-none");
+    document.getElementById("saveProductBtn").disabled = false;
+}
+
+// Check for duplicate on input
+document.getElementById("productName").addEventListener("input", function () {
+    const name = this.value.trim().toLowerCase();
+    const original = this.dataset.original || "";
+    const warning = document.getElementById("duplicateWarning");
+    const saveBtn = document.getElementById("saveProductBtn");
+
+    if (!name) {
+        warning.classList.add("d-none");
+        saveBtn.disabled = false;
+        return;
+    }
+
+    // ✅ Only block duplicates when ADDING
+    if (!isEdit && existingNames.includes(name)) {
+        warning.classList.remove("d-none");
+        saveBtn.disabled = true;
+        return;
+    }
+
+    // ✅ For EDIT: allow same name, block only if name matches another product
+    if (isEdit && name !== original && existingNames.includes(name)) {
+        warning.classList.remove("d-none");
+        saveBtn.disabled = true;
+        return;
+    }
+
+    warning.classList.add("d-none");
+    saveBtn.disabled = false;
+});
+
+
+// Save (Add or Edit)
+document.getElementById("saveProductBtn").onclick = function() {
+    const name = document.getElementById("productName").value.trim();
+    const rate = document.getElementById("productRate").value;
+    const gst_type = document.getElementById("productGstType").value;
+    const gst = document.getElementById("productGst").value;
+    const hsn = document.getElementById("productHsn").value.trim();
+
+    if (!name || !rate || !gst) {
+        showToast("Error", "All fields are required.", "error");
+        return;
+    }
+
+    // Final duplicate check
+    const lowerName = name.toLowerCase();
+    const original = document.getElementById("productName").dataset.original || "";
+
+if (!isEdit && existingNames.includes(lowerName)) {
+    showToast("Error", "This product already exists.", "error");
+    return;
+}
+
+    const formData = new URLSearchParams();
+    formData.append("action", isEdit ? "edit" : "add");
+    formData.append("name", name);
+    formData.append("hsn_code", hsn);   
+    formData.append("rate", rate);
+    formData.append("gst_type", gst_type);
+    formData.append("gst", gst);
+    if (isEdit) formData.append("id", currentId);
+
+    fetch("{% url 'product_master' %}", {
+        method: "POST",
+        headers: { "X-Requested-With": "XMLHttpRequest", "X-CSRFToken": "{{ csrf_token }}" },
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        showToast(data.success ? "Success" : "Error", data.message, data.success ? "success" : "error");
+        if (data.success) {
+            bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
+            setTimeout(() => location.reload(), 1500);
+        }
+    })
+    .catch(() => showToast("Error", "Network error.", "error"));
+};
+
+// Delete Product
+function deleteProduct(id) {
+    if (!confirm("Delete this product?")) return;
+
+    const formData = new URLSearchParams();
+    formData.append("action", "delete");
+    formData.append("id", id);
+
+    fetch("{% url 'product_master' %}", {
+        method: "POST",
+        headers: { "X-Requested-With": "XMLHttpRequest", "X-CSRFToken": "{{ csrf_token }}" },
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        showToast(data.success ? "Success" : "Error", data.message, data.success ? "success" : "error");
+        if (data.success) setTimeout(() => location.reload(), 1500);
+    });
+}
+
+let tableRows = [];
+let rowsPerPage = document.getElementById('entriesSelect').value;
+let currentPage = 1;
+
+document.addEventListener("DOMContentLoaded", function () {
+    tableRows = Array.from(document.querySelectorAll("#productBody tr"));
+    rowsPerPage = parseInt(document.getElementById("entriesSelect").value) || 10;
+    renderTable();
+});
+
+function renderTable() {
+    const searchTerm = document.getElementById("searchInput").value.toLowerCase().trim();
+
+    const filteredRows = tableRows.filter(row => {
+        const productName = row.querySelector(".pname")?.textContent.toLowerCase() || "";
+        return productName.includes(searchTerm);
+    });
+
+    const totalRows = filteredRows.length;
+    const totalPages = Math.ceil(totalRows / rowsPerPage) || 1;
+    if (currentPage > totalPages) currentPage = totalPages;
+
+    // Page info
+    const start = (currentPage - 1) * rowsPerPage + 1;
+    const end = Math.min(currentPage * rowsPerPage, totalRows);
+    const infoText = totalRows === 0 ? "No entries found" : `Showing ${start} to ${end} of ${totalRows} entries`;
+    // Add <div id="pageInfo"></div> if you want to show it
+    document.getElementById("pageInfo").textContent = infoText;
+
+    // Hide all
+    tableRows.forEach(row => row.style.display = "none");
+
+    // Show current page
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    filteredRows.slice(startIndex, startIndex + rowsPerPage).forEach(row => row.style.display = "");
+
+    // Render pagination
+    renderPagination(totalPages);
+}
+
+function renderPagination(totalPages) {
+    const pagination = document.getElementById("pagination");
+    if (!pagination) return;
+
+    pagination.innerHTML = "";
+
+    // Previous
+    const prev = document.createElement("li");
+    prev.className = `page-item ${currentPage === 1 ? "disabled" : ""}`;
+    prev.innerHTML = `<a class="page-link" href="#" onclick="changePage(${currentPage - 1}); return false;">Previous</a>`;
+    pagination.appendChild(prev);
+
+    // Pages
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, currentPage + 2);
+
+    if (startPage > 1) {
+        pagination.appendChild(createPageLink(1));
+        if (startPage > 2) pagination.appendChild(createEllipsis());
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+        pagination.appendChild(createPageLink(i, i === currentPage));
+    }
+
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) pagination.appendChild(createEllipsis());
+        pagination.appendChild(createPageLink(totalPages));
+    }
+
+    // Next
+    const next = document.createElement("li");
+    next.className = `page-item ${currentPage === totalPages ? "disabled" : ""}`;
+    next.innerHTML = `<a class="page-link" href="#" onclick="changePage(${currentPage + 1}); return false;">Next</a>`;
+    pagination.appendChild(next);
+}
+
+function createPageLink(page, active = false) {
+    const li = document.createElement("li");
+    li.className = `page-item ${active ? "active" : ""}`;
+    li.innerHTML = `<a class="page-link" href="#" onclick="changePage(${page}); return false;">${page}</a>`;
+    return li;
+}
+
+function createEllipsis() {
+    const li = document.createElement("li");
+    li.className = "page-item disabled";
+    li.innerHTML = `<span class="page-link">...</span>`;
+    return li;
+}
+
+function changePage(page) {
+    currentPage = page;
+    renderTable();
+}
+
+// Entries change
+document.getElementById("entriesSelect").addEventListener("change", function() {
+    rowsPerPage = parseInt(this.value);
+    currentPage = 1;
+    renderTable();
+});
+
+// Search
+document.getElementById("searchInput").addEventListener("input", function() {
+    currentPage = 1;
+    renderTable();
+});
+</script>
+
+{% endblock %}

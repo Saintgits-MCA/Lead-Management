@@ -1,0 +1,389 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block page_title %}
+<h2 class="page-title">
+    Enquiry Category
+    <span class="breadcrumb-text">Leads • Enquiry Category</span>
+</h2>
+{% endblock page_title %}
+
+{% block content %}
+<style>
+    .page-card {
+        background: #fff;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+    .action-btn {
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+    }
+    .btn-edit { background: #0d6efd; color: #fff; }
+    .btn-delete { background: #dc3545; color: #fff; }
+
+    .table-responsive {
+        max-height: 500px;
+        overflow-y: auto;
+    }
+
+    #categoryTable thead th {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: #f8f9fa;
+        box-shadow: 0 2px 2px -1px rgba(0,0,0,0.1);
+    }
+
+    .toast {
+        min-width: 300px;
+        border-radius: 12px;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    .toast-header {
+        border-radius: 12px 12px 0 0;
+        font-weight: 600;
+    }
+    .toast.success .toast-header { background-color: #16a34a; color: white; }
+    .toast.error .toast-header { background-color: #dc2626; color: white; }
+</style>
+
+<div class="page-card mt-3">
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;">
+        <div id="liveToast" class="toast" role="alert">
+            <div class="toast-header">
+                <strong class="me-auto" id="toastTitle">Notification</strong>
+                <button type="button" class="btn btn-danger text-white ms-auto" data-bs-dismiss="toast"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="toast-body" id="toastBody"></div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between mb-3">
+        <h4 class="fw-bold">Enquiry Category Master</h4>
+        <button class="btn btn-primary px-3" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+            <i class="fas fa-plus me-1"></i> Add Category
+        </button>
+    </div>
+
+    <div class="d-flex justify-content-between mb-3">
+        <div>Show <select id="entriesSelect" class="form-control d-inline-block" style="width: 80px;">
+            <option value="10" selected>10</option><option value="15">15</option><option value="25">25</option><option value="50">50</option>
+        </select> entries</div>
+        <div><input id="searchInput" type="text" class="form-control" placeholder="Search..." style="width: 200px;"></div>
+    </div>
+
+    <div class="table-responsive" style="max-height:500px;overflow-y:auto">
+        <table class="table table-hover align-middle" id="categoryTable">
+            <thead class="table-light sticky-header">
+                <tr>
+                    <th class="text-center" style="width: 70px;">No</th>
+                    <th class="text-center">Category Name</th>
+                    <th class="text-center">Status</th>
+                    <th class="text-center" style="width: 160px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="categoryBody">
+                {% for cat in enquiry_categories %}
+                <tr data-id="{{ cat.id }}">
+                    <td class="text-center">{{ forloop.counter }}</td>
+                    <td class="text-center category-name">{{ cat.name }}</td>
+                    <td class="text-center">{{ cat.status }}</td>
+                    <td class="text-center">
+                        <button class="action-btn btn-edit btn-sm me-1" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#editCategoryModal" 
+                                onclick="openEditModal({{ cat.id }}, '{{ cat.name|escapejs }}')">
+                            <i class="bi bi-pencil-fill"></i>
+                        </button>
+                        <button class="action-btn btn-delete btn-sm" onclick="deleteCategory({{ cat.id }})">
+                            <i class="bi bi-trash-fill"></i>
+                        </button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="3" class="text-center py-4 text-muted">No categories added yet</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="d-flex justify-content-between align-items-center mt-3">
+    <div id="pageInfo" class="text-muted small"></div>
+
+    <nav>
+        <ul class="pagination pagination-sm mb-0" id="pagination"></ul>
+    </nav>
+</div>
+</div>
+
+<!-- Add Modal -->
+<div class="modal fade" id="addCategoryModal">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border-radius: 12px;">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Add Enquiry Category</h5>
+                <button type="button" class="btn btn-danger btn-sm ms-auto text-white" data-bs-dismiss="modal"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <label class="fw-semibold">Category Name:</label>
+                <input type="text" id="categoryInput" class="form-control mt-2" placeholder="e.g., Mutual Funds">
+                <small id="duplicateWarning" class="text-danger mt-1 d-none">This category already exists!</small>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary px-4" id="saveCategoryBtn">Save</button>
+                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editCategoryModal">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border-radius: 12px;">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Edit Enquiry Category</h5>
+                <button type="button" class="btn btn-danger btn-sm ms-auto text-white" data-bs-dismiss="modal"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editCategoryId">
+                <label class="fw-semibold">Category Name:</label>
+                <input type="text" id="editCategoryInput" class="form-control mt-2">
+                <small id="editDuplicateWarning" class="text-danger mt-1 d-none">This category already exists!</small>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary px-4" id="editSaveBtn">Update</button>
+                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentId = null;
+let tableRows = [];        // ← Define globally
+let rowsPerPage = document.getElementById("entriesSelect").value;      // ← Define properly (was rowsperpage without 'let')
+let currentPage = 1;       // ← Define currentPage
+
+// Run after DOM loads
+document.addEventListener("DOMContentLoaded", function () {
+    // Capture all rows once page is loaded
+    tableRows = Array.from(document.querySelectorAll("#categoryBody tr"));
+
+    // Initial table render
+    renderTable();
+});
+
+function showToast(title, message, type = 'success') {
+    const toastEl = document.getElementById('liveToast');
+    document.getElementById('toastTitle').textContent = title;
+    document.getElementById('toastBody').textContent = message;
+    toastEl.className = 'toast';
+    toastEl.classList.add(type);
+    const toast = new bootstrap.Toast(toastEl, { delay: 4000 });
+    toast.show();
+}
+
+function openEditModal(id, name) {
+    currentId = id;
+    document.getElementById("editCategoryId").value = id;
+    document.getElementById("editCategoryInput").value = name;
+    document.getElementById("editDuplicateWarning").classList.add("d-none");
+}
+
+// Add Category
+document.getElementById("saveCategoryBtn").onclick = function() {
+    const name = document.getElementById("categoryInput").value.trim();
+    if (!name) return showToast("Error", "Category name required", "error");
+
+    const formData = new URLSearchParams();
+    formData.append("action", "add");
+    formData.append("name", name);
+
+    fetch("{% url 'enquiry_category_list' %}", {
+        method: "POST",
+        headers: { "X-Requested-With": "XMLHttpRequest", "X-CSRFToken": "{{ csrf_token }}" },
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        showToast(data.success ? "Success" : "Error", data.message, data.success ? "success" : "error");
+        if (data.success) {
+            bootstrap.Modal.getInstance(document.getElementById('addCategoryModal')).hide();
+            setTimeout(() => location.reload(), 1000);
+        }
+    });
+};
+
+// Edit Category
+document.getElementById("editSaveBtn").onclick = function() {
+    const name = document.getElementById("editCategoryInput").value.trim();
+    if (!name) return showToast("Error", "Category name required", "error");
+
+    const formData = new URLSearchParams();
+    formData.append("action", "edit");
+    formData.append("id", currentId);
+    formData.append("name", name);
+
+    fetch("{% url 'enquiry_category_list' %}", {
+        method: "POST",
+        headers: { "X-Requested-With": "XMLHttpRequest", "X-CSRFToken": "{{ csrf_token }}" },
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        showToast(data.success ? "Success" : "Error", data.message, data.success ? "success" : "error");
+        if (data.success) {
+            bootstrap.Modal.getInstance(document.getElementById('editCategoryModal')).hide();
+            setTimeout(() => location.reload(), 1000);
+        }
+    });
+};
+
+// Delete Category
+function deleteCategory(id) {
+    if (!confirm("Delete this category?")) return;
+
+    const formData = new URLSearchParams();
+    formData.append("action", "delete");
+    formData.append("id", id);
+
+    fetch("{% url 'enquiry_category_list' %}", {
+        method: "POST",
+        headers: { "X-Requested-With": "XMLHttpRequest", "X-CSRFToken": "{{ csrf_token }}" },
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        showToast(data.success ? "Success" : "Error", data.message, data.success ? "success" : "error");
+        if (data.success) setTimeout(() => location.reload(), 1000);
+    });
+}
+
+function renderTable() {
+    const searchTerm = document.getElementById("searchInput").value.toLowerCase().trim();
+
+    const filteredRows = tableRows.filter(row => {
+        const categoryName = row.querySelector(".category-name")?.textContent.toLowerCase() || "";
+        return categoryName.includes(searchTerm);
+    });
+
+    const totalRows = filteredRows.length;
+
+    // Update page info
+    let infoText = `Showing ${totalRows} entries`;
+    if (totalRows === 0) {
+        infoText = "No entries found";
+    } else if (rowsPerPage !== -1) {
+        const start = (currentPage - 1) * rowsPerPage + 1;
+        const end = Math.min(currentPage * rowsPerPage, totalRows);
+        infoText = `Showing ${start} to ${end} of ${totalRows} entries`;
+    }
+    document.getElementById("pageInfo").textContent = infoText;
+
+    // Hide all rows
+    tableRows.forEach(row => row.style.display = "none");
+
+    // Show all if "All" selected
+    if (rowsPerPage === -1) {
+        filteredRows.forEach(row => row.style.display = "");
+        document.getElementById("pagination").innerHTML = "";  // No pagination
+        return;
+    }
+
+    // Calculate pages
+    const totalPages = Math.ceil(totalRows / rowsPerPage);
+    if (totalPages === 0) totalPages = 1;
+    if (currentPage > totalPages) currentPage = totalPages;
+
+    const start = (currentPage - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
+    filteredRows.slice(start, end).forEach(row => row.style.display = "");
+
+    // Render pagination buttons
+    renderPagination(totalPages, totalRows);
+}
+
+function renderPagination(totalPages, totalRows) {
+    const pagination = document.getElementById("pagination");
+    pagination.innerHTML = "";
+
+    // Always render pagination (even for 1 page)
+    // Previous
+    const prevLi = document.createElement("li");
+    prevLi.className = "page-item" + (currentPage === 1 ? " disabled" : "");
+    prevLi.innerHTML = `<a class="page-link" href="#" onclick="changePage(${currentPage - 1}); return false;">Previous</a>`;
+    pagination.appendChild(prevLi);
+
+    // Page numbers (always show, with ellipsis for 50+ pages)
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, currentPage + 2);
+
+    // Show first page if not in view
+    if (startPage > 1) {
+        const first = document.createElement("li");
+        first.className = "page-item";
+        first.innerHTML = `<a class="page-link" href="#" onclick="changePage(1); return false;">1</a>`;
+        pagination.appendChild(first);
+
+        if (startPage > 2) {
+            const ellipsis = document.createElement("li");
+            ellipsis.className = "page-item disabled";
+            ellipsis.innerHTML = `<span class="page-link">...</span>`;
+            pagination.appendChild(ellipsis);
+        }
+    }
+
+    // Main page numbers
+    for (let i = startPage; i <= endPage; i++) {
+        const li = document.createElement("li");
+        li.className = "page-item" + (i === currentPage ? " active" : "");
+        li.innerHTML = `<a class="page-link" href="#" onclick="changePage(${i}); return false;">${i}</a>`;
+        pagination.appendChild(li);
+    }
+
+    // Show last page if not in view (handles 50+ pages with ellipsis)
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            const ellipsis = document.createElement("li");
+            ellipsis.className = "page-item disabled";
+            ellipsis.innerHTML = `<span class="page-link">...</span>`;
+            pagination.appendChild(ellipsis);
+        }
+
+        const last = document.createElement("li");
+        last.className = "page-item";
+        last.innerHTML = `<a class="page-link" href="#" onclick="changePage(${totalPages}); return false;">${totalPages}</a>`;
+        pagination.appendChild(last);
+    }
+
+    // Next
+    const nextLi = document.createElement("li");
+    nextLi.className = "page-item" + (currentPage === totalPages ? " disabled" : "");
+    nextLi.innerHTML = `<a class="page-link" href="#" onclick="changePage(${currentPage + 1}); return false;">Next</a>`;
+    pagination.appendChild(nextLi);
+}
+
+function changePage(page) {
+    currentPage = page;
+    renderTable();
+}
+
+// Entries change
+document.getElementById("entriesSelect").addEventListener("change", function() {
+    const val = parseInt(this.value);
+    rowsPerPage = val === -1 ? -1 : val;
+    currentPage = 1;
+    renderTable();
+});
+
+// Search
+document.getElementById("searchInput").addEventListener("input", function() {
+    currentPage = 1;
+    renderTable();
+});
+</script>
+
+{% endblock %}

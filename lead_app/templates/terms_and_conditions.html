@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block page_title %}
+<h2 class="page-title">
+     Terms and Conditions – {{ client.client_name }}
+    <span class="breadcrumb-text">Admin •  Terms and conditions</span>
+</h2>
+{% endblock %}
+
+{% block content %}
+
+<style>
+.profile-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 25px;
+    box-shadow: 0 6px 20px rgba(0,0,0,.08);
+}
+
+.readonly, .terms-display {
+    background: #f9fbfc;
+    border: 1px solid #e9ecef;
+    padding: 16px;
+    border-radius: 8px;
+    white-space: pre-wrap;
+    line-height: 1.6;
+}
+
+.editable {
+    border-color: #ced4da;
+    transition: all 0.2s;
+}
+
+.terms-display:empty::before {
+    content: "No privacy terms has been added yet.";
+    color: #6c757d;
+    font-style: italic;
+}
+</style>
+
+<div class="ms-auto text-end top-action mb-4">
+    <button type="button" class="btn btn-primary" id="editBtn">
+        <i class="fas fa-edit"></i>
+    </button>
+    <a class="btn btn-danger" href="{%url 'delete_terms_conditions' client.id %}" onclick="return confirm('Delete this item?');"><i class="fas fa-trash"></i></a>
+</div>
+
+<div class="profile-card">
+    <h4 class="mb-4">Terms and Conditions</h4>
+
+    <form id="termsForm" method="POST">
+        {% csrf_token %}
+
+        <!-- Display mode -->
+        <div class="terms-display mb-4" id="termsDisplay">
+            {{ terms.content|linebreaks }}
+        </div>
+
+        <!-- Edit mode – hidden at first -->
+        <div id="termsEditArea" class="d-none mb-4">
+            <label class="form-label">Terms Content <span class="text-danger">*</span></label>
+            <textarea class="form-control editable" name="content" rows="16" id="termsTextarea" disabled>
+{{ terms.content }}
+            </textarea>
+            <small class="text-muted mt-2 d-block">
+                Write your full  Terms and Conditions here. Line breaks are preserved.
+            </small>
+        </div>
+
+        <div class="mt-5 text-end action-buttons">
+            <button type="submit" class="btn btn-primary d-none" id="saveBtn">
+                <span class="spinner-border spinner-border-sm me-2 d-none" id="saveSpinner"></span>
+                Save Changes
+            </button>
+            <button type="button" class="btn btn-light d-none" id="cancelBtn">Cancel</button>
+        </div>
+    </form>
+</div>
+
+<script>
+// Elements
+const editBtn       = document.getElementById("editBtn");
+const saveBtn       = document.getElementById("saveBtn");
+const cancelBtn     = document.getElementById("cancelBtn");
+const saveSpinner   = document.getElementById("saveSpinner");
+const termsDisplay = document.getElementById("termsDisplay");
+const termsEditArea = document.getElementById("termsEditArea");
+const termsTextarea = document.getElementById("termsTextarea");
+
+// Enter edit mode
+editBtn.onclick = () => {
+    termsDisplay.classList.add("d-none");
+    termsEditArea.classList.remove("d-none");
+    termsTextarea.disabled = false;
+    saveBtn.classList.remove("d-none");
+    cancelBtn.classList.remove("d-none");
+    editBtn.classList.add("d-none");
+};
+
+// Cancel – just reload
+cancelBtn.onclick = () => location.reload();
+
+// Form submit with AJAX
+document.getElementById("termsForm").onsubmit = function(e) {
+    e.preventDefault();
+
+    const content = termsTextarea.value.trim();
+    if (!content) {
+        alert("Please enter the  Terms and Conditions content.");
+        return;
+    }
+
+    saveBtn.disabled = true;
+    saveSpinner.classList.remove("d-none");
+
+    const formData = new FormData(this);
+
+    fetch("{% url 'save_terms_conditions' client.id %}", {
+        method: "POST",
+        body: formData,
+        headers: {
+            "X-CSRFToken": "{{ csrf_token }}"
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update display without reload (optional)
+            termsDisplay.innerHTML = data.content ? data.content.replace(/\n/g, '<br>') : '';
+            alert(data.message);
+            location.reload();  // or remove this line if you want smooth UX
+        } else {
+            alert(data.message + (data.errors?.content ? "\n" + data.errors.content : ""));
+        }
+    })
+    .catch(() => {
+        alert("Something went wrong. Please try again.");
+    })
+    .finally(() => {
+        saveBtn.disabled = false;
+        saveSpinner.classList.add("d-none");
+    });
+};
+</script>
+
+{% endblock %}

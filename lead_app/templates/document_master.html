@@ -1,0 +1,370 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block page_title %}
+<h2 class="page-title">
+    Document Master 
+    <span class="breadcrumb-text">Documents • Document Master</span>
+</h2>
+{% endblock %}
+
+{% block content %}
+<script src="{% static 'js/xlsx.full.min.js' %}"></script>
+
+<style>
+.page-card { background:#fff; border-radius:12px; padding:25px; box-shadow:0 4px 12px rgba(0,0,0,0.06); }
+.action-btn { padding:4px 10px; border-radius:6px; font-size:0.8rem; }
+.btn-edit { background:#0d6efd; color:#fff; }
+.btn-delete { background:#dc3545; color:#fff; }
+
+.table-responsive { width:100%; overflow-x:auto; max-height:500px; position:relative; }
+#docTable thead th { position:sticky; top:0; background:#f8f9fa; z-index:10; font-weight:600; }
+
+.pagination .page-link { border-radius:6px; margin:0 3px; color:#0d6efd !important; background:#fff; border:1px solid #dee2e6; }
+.pagination .page-link:hover { background:#0d6efd !important; color:#fff !important; }
+.pagination .active .page-link { background:#0d6efd !important; color:#fff !important; }
+.pagination .disabled .page-link { color:#6c757d !important; opacity:0.6; }
+
+@media (max-width:768px) {
+    .top-controls { flex-direction:column; gap:10px; }
+    .top-controls input, .top-controls select { width:100% !important; }
+}
+</style>
+
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index:9999;">
+    <div id="liveToast" class="toast" role="alert">
+        <div class="toast-header d-flex align-items-center justify-content-between">
+            <strong class="me-auto" id="toastTitle">Notification</strong>
+            <button type="button" class="btn btn-danger ms-auto" data-bs-dismiss="toast"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="toast-body" id="toastBody"></div>
+    </div>
+</div>
+
+<div class="page-card mt-3">
+    <div class="d-flex justify-content-between mb-3 flex-wrap gap-2">
+        <h4 class="fw-bold mb-0">Document Master</h4>
+        <button class="btn btn-primary px-3" data-bs-toggle="modal" data-bs-target="#docModal" onclick="openAddModal()">
+            <i class="fas fa-plus me-1"></i> Add Document
+        </button>
+    </div>
+
+    <div class="d-flex justify-content-between mb-3 top-controls">
+        <div>
+            Show <select id="entriesSelect" class="form-control d-inline-block" style="width:80px;">
+                <option value="5">5</option><option value="10" selected>10</option><option value="25">25</option><option value="50">50</option>
+            </select> entries
+        </div>
+        <div>
+            <input id="searchInput" type="text" class="form-control" placeholder="Search by ID or Title..." style="width:250px;">
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle" id="docTable">
+            <thead class="table-light">
+                <tr>
+                    <th>No</th>
+                    <th>Document ID</th>
+                    <th>Title</th>
+                    <th>Type</th>
+                    <th>Created At</th>
+                    <th>Expiry Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="docBody">
+                {% for doc in documents %}
+                <tr data-id="{{ doc.id }}">
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ doc.document_id }}</td>
+                    <td>{{ doc.title }}</td>
+                    <td>{{ doc.type }}</td>
+                    <td>{{ doc.created_at|date:"d M Y" }}</td>
+                    <td>{{ doc.expiry_date|date:"d M Y"|default:"—" }}</td>
+                    <td>
+                        <button class="action-btn btn-edit btn-sm me-1" 
+                                data-bs-toggle="modal" data-bs-target="#docModal"
+                                onclick="openEditModal({{ doc.id }}, '{{ doc.document_id|escapejs }}', '{{ doc.title|escapejs }}', '{{ doc.description|escapejs }}', '{{ doc.type|escapejs }}', '{{ doc.expiry_date|date:"Y-m-d"|default:"" }}')">
+                            <i class="bi bi-pencil-fill"></i>
+                        </button>
+                        <button class="action-btn btn-delete btn-sm" onclick="deleteDoc({{ doc.id }})">
+                            <i class="bi bi-trash-fill"></i>
+                        </button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="text-center py-4 text-muted">No documents added yet</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mt-3">
+        <div id="pageInfo" class="text-muted small">Showing 1 to 10 entries</div>
+        <nav><ul class="pagination pagination-sm mb-0" id="pagination"></ul></nav>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="docModal">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius:12px;">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="modalTitle">Add Document</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="docId">
+                <div class="mb-3">
+                    <label class="fw-semibold">Document ID <span class="text-danger">*</span></label>
+                    <input type="text" id="docIdField" class="form-control" placeholder="e.g. DOC-001">
+                    <small class="text-danger d-none" id="idWarning">This Document ID already exists!</small>
+                </div>
+                <div class="mb-3">
+                    <label class="fw-semibold">Title <span class="text-danger">*</span></label>
+                    <input type="text" id="docTitle" class="form-control" placeholder="Enter title">
+                </div>
+                <div class="mb-3">
+                    <label class="fw-semibold">Description</label>
+                    <textarea id="docDesc" class="form-control" rows="3" placeholder="Optional description"></textarea>
+                </div>
+                <div class="mb-3">
+        <label class="fw-semibold">Type</label>
+        <input type="text" id="docType" class="form-control" placeholder="e.g. License, Certificate, Agreement" >
+    </div>
+
+    <div class="mb-3">
+        <label class="fw-semibold">Expiry Date <span class="text-danger">*</span></label>
+        <input type="date" id="docExpiry" class="form-control" required>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary px-4" id="saveDocBtn">Save</button>
+                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let tableRows = [];
+let rowsPerPage = document.getElementById("entriesSelect").value;
+let currentPage = 1;
+let isEdit = false;
+let currentDocId = null;
+
+function showToast(title, message, type = 'success') {
+    const toastEl = document.getElementById('liveToast');
+    document.getElementById('toastTitle').textContent = title;
+    document.getElementById('toastBody').textContent = message;
+    const header = toastEl.querySelector('.toast-header');
+    header.style.backgroundColor = type === 'success' ? '#16a34a' : '#dc2626';
+    header.style.color = 'white';
+    new bootstrap.Toast(toastEl, {delay: 4000}).show();
+}
+
+function openAddModal() {
+    isEdit = false;
+    currentDocId = null;
+    document.getElementById("modalTitle").textContent = "Add Document";
+    document.getElementById("docId").value = "";
+    document.getElementById("docIdField").value = "";
+    document.getElementById("docTitle").value = "";
+    document.getElementById("docDesc").value = "";
+    document.getElementById("docType").value = "";
+    document.getElementById("docExpiry").value = "";  // ← Clear expiry
+    document.getElementById("idWarning").classList.add("d-none");
+}
+
+function openEditModal(id, doc_id, title, desc, type, expiry) {
+    isEdit = true;
+    currentDocId = id;
+    document.getElementById("modalTitle").textContent = "Edit Document";
+    document.getElementById("docId").value = id;
+    document.getElementById("docIdField").value = doc_id;
+    document.getElementById("docIdField").dataset.original = doc_id.toUpperCase();
+    document.getElementById("docTitle").value = title;
+    document.getElementById("docDesc").value = desc;
+    document.getElementById("docType").value = type || "";
+    document.getElementById("docExpiry").value = expiry || "";  // ← Set expiry if exists
+    document.getElementById("idWarning").classList.add("d-none");
+}
+
+document.getElementById("saveDocBtn").onclick = function() {
+    const docIdField = document.getElementById("docIdField").value.trim().toUpperCase();
+    const title = document.getElementById("docTitle").value.trim();
+    const desc = document.getElementById("docDesc").value.trim();
+    const type = document.getElementById("docType").value.trim() || "";
+    const expiry = document.getElementById("docExpiry").value || null;
+
+    if (!docIdField || !title) {
+        showToast("Error", "Document ID and Title are required.", "error");
+        return;
+    }
+
+    const data = {
+        action: isEdit ? "edit" : "add",
+        id: currentDocId || null,
+        document_id: docIdField,
+        title: title,
+        description: desc,
+        type: type,
+        expiry_date: expiry  // ← Send expiry date
+    };
+
+    fetch("", {
+        method: "POST",
+        headers: {"Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest", "X-CSRFToken": "{{ csrf_token }}"},
+        body: JSON.stringify(data)
+    })
+    .then(r => r.json())
+    .then(res => {
+        showToast(res.success ? "Success" : "Error", res.message, res.success ? "success" : "error");
+        if (res.success) {
+            bootstrap.Modal.getInstance(document.getElementById('docModal')).hide();
+            setTimeout(() => location.reload(), 1200);
+        }
+    });
+};
+
+document.getElementById("docIdField").addEventListener("input", function() {
+    const val = this.value.trim().toUpperCase();
+    const original = this.dataset.original || "";
+    const warning = document.getElementById("idWarning");
+
+    if (val && val !== original) {
+        fetch("", {
+            method: "POST",
+            headers: {"X-Requested-With": "XMLHttpRequest", "X-CSRFToken": "{{ csrf_token }}"},
+            body: new URLSearchParams({action: "check_id", document_id: val})
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.exists) {
+                warning.classList.remove("d-none");
+                document.getElementById("saveDocBtn").disabled = true;
+            } else {
+                warning.classList.add("d-none");
+                document.getElementById("saveDocBtn").disabled = false;
+            }
+        });
+    } else {
+        warning.classList.add("d-none");
+        document.getElementById("saveDocBtn").disabled = false;
+    }
+});
+
+{% comment %} // Save
+document.getElementById("saveDocBtn").onclick = function() {
+    const docIdField = document.getElementById("docIdField").value.trim().toUpperCase();
+    const title = document.getElementById("docTitle").value.trim();
+    const desc = document.getElementById("docDesc").value.trim();
+    const type = document.getElementById("docType").value;
+
+    if (!docIdField || !title) {
+        showToast("Error", "Document ID and Title are required.", "error");
+        return;
+    }
+
+    const data = {
+        action: isEdit ? "edit" : "add",
+        id: currentDocId || null,
+        document_id: docIdField,
+        title: title,
+        description: desc,
+        type: type
+    };
+
+    fetch("", {
+        method: "POST",
+        headers: {"Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest", "X-CSRFToken": "{{ csrf_token }}"},
+        body: JSON.stringify(data)
+    })
+    .then(r => r.json())
+    .then(res => {
+        showToast(res.success ? "Success" : "Error", res.message, res.success ? "success" : "error");
+        if (res.success) {
+            bootstrap.Modal.getInstance(document.getElementById('docModal')).hide();
+            setTimeout(() => location.reload(), 1200);
+        }
+    });
+}; {% endcomment %}
+
+function deleteDoc(id) {
+    if (!confirm("Delete this document permanently?")) return;
+
+    fetch("", {
+        method: "POST",
+        headers: {"Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest", "X-CSRFToken": "{{ csrf_token }}"},
+        body: JSON.stringify({action: "delete", id: id})
+    })
+    .then(r => r.json())
+    .then(res => {
+        showToast(res.success ? "Success" : "Error", res.message, res.success ? "success" : "error");
+        if (res.success) setTimeout(() => location.reload(), 1200);
+    });
+}
+
+// Pagination + Search (same as product master)
+document.addEventListener("DOMContentLoaded", function () {
+    tableRows = Array.from(document.querySelectorAll("#docBody tr"));
+
+    const entriesSelect = document.getElementById("entriesSelect");
+    rowsPerPage = parseInt(entriesSelect.value);
+    entriesSelect.addEventListener("change", () => {
+        rowsPerPage = parseInt(entriesSelect.value);
+        currentPage = 1;
+        renderTable();
+    });
+
+    document.getElementById("searchInput").addEventListener("input", () => {
+        currentPage = 1;
+        renderTable();
+    });
+
+    renderTable();
+});
+
+function renderTable() {
+    const search = document.getElementById("searchInput").value.toLowerCase().trim();
+    const filtered = tableRows.filter(row => {
+        const cells = row.querySelectorAll("td");
+        const text = Array.from(cells).map(td => td.textContent.toLowerCase()).join(" ");
+        return text.includes(search);
+    });
+
+    const total = filtered.length;
+    const pages = Math.ceil(total / rowsPerPage) || 1;
+    if (currentPage > pages) currentPage = pages;
+
+    tableRows.forEach(r => r.style.display = "none");
+    filtered.slice((currentPage-1)*rowsPerPage, currentPage*rowsPerPage).forEach(r => r.style.display = "");
+
+    document.getElementById("pageInfo").textContent = total === 0 ? "No entries" : `Showing ${(currentPage-1)*rowsPerPage + 1} to ${Math.min(currentPage*rowsPerPage, total)} of ${total} entries`;
+
+    renderPagination(pages);
+}
+
+function renderPagination(pages) {
+    const ul = document.getElementById("pagination");
+    ul.innerHTML = "";
+
+    ul.appendChild(createPage("Previous", currentPage - 1, currentPage === 1));
+
+    for (let i = 1; i <= pages; i++) {
+        ul.appendChild(createPage(i, i, i === currentPage));
+    }
+
+    ul.appendChild(createPage("Next", currentPage + 1, currentPage === pages));
+}
+
+function createPage(text, page, disabled = false, active = false) {
+    const li = document.createElement("li");
+    li.className = `page-item ${disabled ? 'disabled' : ''} ${active ? 'active' : ''}`;
+    li.innerHTML = `<a class="page-link" href="#" onclick="${disabled ? '' : 'changePage(' + page + '); return false;'}">${text}</a>`;
+    return li;
+}
+
+function changePage(p) { currentPage = p; renderTable(); }
+</script>
+{% endblock %}
