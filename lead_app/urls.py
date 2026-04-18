@@ -47,6 +47,8 @@ urlpatterns = [
     path('delete-terms/<int:client_id>/', views.delete_terms_conditions, name='delete_terms_conditions'),
     path("forgot-password/", views.forgot_password, name="forgot_password"),
     path("reset-password/<uidb64>/", views.reset_password, name="reset_password"),
+    path("privacy-policy/",views.privacy_policy,name="privacy_policy"),
+    path('delete-request/',views.delete_request,name="delete_request"),
     #rest-api urls are below
     path('api/client/login/', views.api_client_login, name='api_client_login'),
     path('api/client/logout/', views.api_client_logout, name='api_client_logout'),
@@ -81,4 +83,5 @@ urlpatterns = [
     path('api/client/terms-conditions/', views.api_terms_conditions_detail_update, name='api_terms_conditions'),
     path('api/client/documents/', views.api_document_list_create, name='api_document_list_create'),
     path('api/client/documents/<int:pk>/', views.api_document_detail, name='api_document_detail'),
+
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

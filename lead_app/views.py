@@ -2217,10 +2217,11 @@ def reset_password(request, uidb64):
 
     return render(request, "reset_password.html")
 
+def privacy_policy(request):
+    return render(request,'privacy_policy.html')
 
-
-
-
+def delete_request(request):
+    return render(request,'delete_request.html')
 
 #API Views
 

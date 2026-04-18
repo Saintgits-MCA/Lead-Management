@@ -1,0 +1,542 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delete Account Request | Nexgen CRM</title>
+    <!-- Local Bootstrap & Font Awesome -->
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/all.min.css' %}" rel="stylesheet">
+    <link rel="icon" href="{% static 'images/nexgen_crm2.png' %}">
+    <style>
+        /* Minimal custom CSS — mostly leverages Bootstrap utilities */
+        :root {
+            --primary: #4f46e5;
+            --primary-dark: #4338ca;
+            --primary-light: #eef2ff;
+            --danger: #dc2626;
+            --danger-light: #fef2f2;
+            --ink: #1e293b;
+            --muted: #64748b;
+        }
+        
+        body {
+            background: #f8fafc;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+        
+     .nav-link {
+        color: #64748b;
+        transition: all 0.2s ease;
+    }
+    
+    .nav-link:hover {
+        background-color: #eef2ff;
+        color: #4f46e5;
+        transform: translateY(-1px);
+    }
+    
+    .active-nav {
+        background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+        color: #4f46e5 !important;
+        font-weight: 600 !important;
+        border-left: 3px solid #4f46e5;
+    }
+    
+    .navbar-brand:hover {
+        opacity: 0.9;
+        transform: scale(1.02);
+        transition: all 0.2s;
+    }
+    
+    @media (max-width: 992px) {
+        .nav-link {
+            margin: 4px 0;
+        }
+        .active-nav {
+            border-left: none;
+            border-top: 2px solid #4f46e5;
+        }
+    }
+        
+        /* Hero section */
+        .hero-gradient {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-gradient::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 200px;
+            height: 200px;
+            background: rgba(220, 38, 38, 0.1);
+            border-radius: 50%;
+        }
+        
+        .hero-gradient::after {
+            content: '';
+            position: absolute;
+            bottom: -50px;
+            left: -50px;
+            width: 150px;
+            height: 150px;
+            background: rgba(79, 70, 229, 0.08);
+            border-radius: 50%;
+        }
+        
+        .warning-banner {
+            background: #fef2f2;
+            border-left: 4px solid #dc2626;
+        }
+        
+        .form-card {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03);
+            transition: box-shadow 0.2s;
+        }
+        
+        .form-card:hover {
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.02);
+        }
+        
+        .card-header-custom {
+            background: white;
+            border-bottom: 1px solid #f1f5f9;
+            padding: 1.25rem 1.5rem;
+        }
+        
+        .icon-badge {
+            width: 36px;
+            height: 36px;
+            background: #eef2ff;
+            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #4f46e5;
+        }
+        
+        .step-circle {
+            width: 28px;
+            height: 28px;
+            background: #e0e7ff;
+            color: #4338ca;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+        
+        .contact-item {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        
+        .contact-item:last-child {
+            border-bottom: none;
+        }
+        
+        .contact-icon {
+            width: 32px;
+            height: 32px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            color: #4f46e5;
+        }
+        
+        .btn-danger-gradient {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            border: none;
+            padding: 0.6rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        
+        .btn-danger-gradient:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 20px -5px rgba(220,38,38,0.3);
+        }
+        
+        .btn-outline-secondary-custom {
+            border: 1px solid #e2e8f0;
+            padding: 0.6rem 1.5rem;
+            font-weight: 500;
+            color: #64748b;
+            transition: all 0.2s;
+        }
+        
+        .btn-outline-secondary-custom:hover {
+            border-color: #cbd5e1;
+            background: #f8fafc;
+            color: #334155;
+        }
+        
+        footer {
+            background: #0f172a;
+            border-top: 1px solid #1e293b;
+        }
+        
+        .form-control, .form-select {
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 0.6rem 0.9rem;
+            font-size: 0.875rem;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+        
+        .form-label {
+            font-weight: 600;
+            font-size: 0.8rem;
+            margin-bottom: 0.4rem;
+            color: #334155;
+        }
+        
+        .required-star {
+            color: #dc2626;
+        }
+        
+        @media (max-width: 768px) {
+            .hero-gradient {
+                padding: 1.5rem !important;
+            }
+            .card-header-custom {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="navbar navbar-expand-lg bg-white border-bottom sticky-top py-2 shadow-sm">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center gap-2" href="/">
+            <img src="{% static 'images/nexgen_crm2.png' %}" alt="Nexgen CRM" height="38">
+            <span class="fw-bold fs-5" style="background: linear-gradient(135deg, #4f46e5, #7c3aed); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Nexgen CRM</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto gap-2">
+                <li class="nav-item">
+                    <a class="nav-link d-flex align-items-center gap-2 px-3 py-2 rounded-3 {% if request.resolver_match.url_name == 'privacy_policy' %}active-nav{% endif %}" 
+                       href="/privacy-policy/" 
+                       style="transition: all 0.2s; font-weight: 500;">
+                        <i class="fas fa-shield-alt"></i> 
+                        Privacy Policy
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link d-flex align-items-center gap-2 px-3 py-2 rounded-3 {% if request.resolver_match.url_name == 'delete_request' %}active-nav{% endif %}" 
+                       href="/delete-request/" 
+                       style="transition: all 0.2s; font-weight: 500;">
+                        <i class="fas fa-trash-alt"></i> 
+                        Delete Request
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Hero Section -->
+<section class="hero-gradient text-white py-5">
+    <div class="container position-relative">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="bg-white bg-opacity-10 rounded-3 p-2">
+                        <i class="fas fa-user-slash fs-4"></i>
+                    </div>
+                    <span class="text-uppercase small fw-semibold tracking-wide opacity-75">Destructive Action</span>
+                </div>
+                <h1 class="display-5 fw-bold mb-3">Account &amp;<br>Data Deletion Request</h1>
+                <p class="opacity-75 mb-0">Submit a verified request to permanently close your account and erase all associated data under GDPR/CCPA compliance.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Main Content -->
+<div class="container py-5">
+    
+    <!-- Messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm" role="alert">
+                <i class="fas fa-check-circle me-2"></i> {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+    
+    <!-- Warning Banner -->
+    <div class="warning-banner rounded-3 p-4 mb-4">
+        <div class="d-flex gap-3 align-items-start">
+            <div class="bg-white bg-opacity-50 rounded-2 p-2">
+                <i class="fas fa-exclamation-triangle text-danger fs-5"></i>
+            </div>
+            <div>
+                <h6 class="fw-bold text-danger mb-1">This action is permanent and cannot be undone</h6>
+                <p class="text-danger-emphasis small mb-0">All account data, client records, configurations, and history will be erased permanently. You will lose access immediately after verification is complete.</p>
+            </div>
+        </div>
+    </div>
+    
+    <form method="POST" action="#">
+        {% csrf_token %}
+        <div class="row g-4">
+            
+            <!-- Left Column - Form Fields -->
+            <div class="col-lg-8">
+                
+                <!-- Identity Panel -->
+                <div class="form-card card mb-4">
+                    <div class="card-header-custom d-flex align-items-center gap-3">
+                        <div class="icon-badge">
+                            <i class="fas fa-id-card"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-0">Identity Verification</h6>
+                            <small class="text-muted">Must match your registered Nexgen CRM account</small>
+                        </div>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Full Name <span class="required-star">*</span></label>
+                                <input type="text" class="form-control" name="full_name" required placeholder="As registered on your account">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Email Address <span class="required-star">*</span></label>
+                                <input type="email" class="form-control" name="email" required placeholder="you@company.com">
+                                <small class="text-muted">Confirmation will be sent here</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Phone Number</label>
+                                <input type="tel" class="form-control" name="phone" placeholder="+91 XXXXXXXXXX">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Account ID <span class="text-muted fw-normal">(Optional)</span></label>
+                                <input type="text" class="form-control" name="account_id" placeholder="e.g., NEX-12345">
+                                <small class="text-muted">Speeds up account lookup</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Reason Panel -->
+                <div class="form-card card mb-4">
+                    <div class="card-header-custom d-flex align-items-center gap-3">
+                        <div class="icon-badge">
+                            <i class="fas fa-comment-alt"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-0">Reason for Deletion</h6>
+                            <small class="text-muted">Optional — helps us improve our service</small>
+                        </div>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="mb-3">
+                            <label class="form-label">Primary Reason</label>
+                            <select class="form-select" name="reason">
+                                <option value="">Select a reason…</option>
+                                <option>No longer using the service</option>
+                                <option>Privacy concerns</option>
+                                <option>Switching to another provider</option>
+                                <option>Excessive cost</option>
+                                <option>Other</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label">Additional Information</label>
+                            <textarea class="form-control" name="additional_info" rows="3" placeholder="Anything else you'd like us to know…"></textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Confirmation Panel -->
+                <div class="form-card card mb-4">
+                    <div class="card-header-custom d-flex align-items-center gap-3">
+                        <div class="icon-badge" style="background:#fef2f2; color:#dc2626;">
+                            <i class="fas fa-exclamation"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-0">Acknowledge &amp; Confirm</h6>
+                            <small class="text-muted">Both statements must be checked to proceed</small>
+                        </div>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" name="confirm_delete" id="confirm_delete" required>
+                            <label class="form-check-label" for="confirm_delete">
+                                I understand that deleting my account and data is <strong>permanent and irreversible</strong>. I will not be able to recover my data after this process is complete.
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="confirm_email" id="confirm_email" required>
+                            <label class="form-check-label" for="confirm_email">
+                                I confirm the email address entered above is <strong>correctly linked</strong> to my Nexgen CRM account and can receive the verification email.
+                            </label>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-white border-0 p-4 pt-0">
+                        <div class="d-flex gap-3">
+                            <button type="submit" class="btn btn-danger-gradient text-white">
+                                <i class="fas fa-paper-plane me-2"></i> Submit Deletion Request
+                            </button>
+                            <a href="/" class="btn btn-outline-secondary-custom">
+                                <i class="fas fa-times me-2"></i> Cancel
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Column - Sidebar -->
+            <div class="col-lg-4">
+                
+                <!-- Process Steps -->
+                <div class="form-card card mb-4">
+                    <div class="card-header-custom">
+                        <h6 class="fw-bold mb-0"><i class="fas fa-clock me-2"></i> What happens next</h6>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="d-flex gap-3 mb-3">
+                            <div class="step-circle">1</div>
+                            <div>
+                                <strong class="small">Request logged</strong>
+                                <p class="small text-muted mb-0">Submitted immediately on form completion</p>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-3 mb-3">
+                            <div class="step-circle">2</div>
+                            <div>
+                                <strong class="small">Identity verified</strong>
+                                <p class="small text-muted mb-0">Our team reviews within 2–3 business days</p>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-3 mb-3">
+                            <div class="step-circle">3</div>
+                            <div>
+                                <strong class="small">Confirmation sent</strong>
+                                <p class="small text-muted mb-0">Email with next steps sent to your address</p>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-3">
+                            <div class="step-circle">4</div>
+                            <div>
+                                <strong class="small">Data permanently erased</strong>
+                                <p class="small text-muted mb-0">Completed within 30 days of verification</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Privacy Note -->
+                <div class="alert alert-primary border-0 rounded-3 mb-4" style="background:#eef2ff;">
+                    <i class="fas fa-shield-alt me-2"></i>
+                    This request is handled under our <a href="/privacy-policy/" class="fw-semibold">Privacy Policy</a>. Your data is never shared or sold during the deletion process.
+                </div>
+                
+                <!-- Contact Support -->
+                <div class="form-card card">
+                    <div class="card-header-custom">
+                        <h6 class="fw-bold mb-0"><i class="fas fa-headset me-2"></i> Need help instead?</h6>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="contact-item d-flex align-items-center gap-3 px-4 py-3">
+                            <div class="contact-icon">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <div>
+                                <a href="mailto:info@tissertechnologies.com" class="text-decoration-none">info@tissertechnologies.com</a>
+                            </div>
+                        </div>
+                        <div class="contact-item d-flex align-items-center gap-3 px-4 py-3">
+                            <div class="contact-icon">
+                                <i class="fas fa-phone"></i>
+                            </div>
+                            <div>
+                                <div>+91 80751 02790 <span class="text-muted small">(Support)</span></div>
+                                <div class="small text-muted">+91 90488 44711 <span class="text-muted">(Enquiry)</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Footer -->
+<footer class="mt-5 pt-5 pb-3">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <img src="{% static 'images/nexgen_crm2.png' %}" alt="Nexgen CRM" height="32">
+                    <span class="text-white fw-bold">Nexgen CRM</span>
+                </div>
+                <p class="small text-white-50">Professional CRM solution built for modern businesses. Developed and maintained by Tisser Technologies LLP, Kottayam, Kerala.</p>
+            </div>
+            <div class="col-md-4">
+                <h6 class="text-white-50 small fw-semibold mb-3">CONTACT</h6>
+                <div class="d-flex gap-2 mb-2">
+                    <i class="fas fa-envelope text-primary small mt-1"></i>
+                    <a href="mailto:info@tissertechnologies.com" class="small text-white-50 text-decoration-none">info@tissertechnologies.com</a>
+                </div>
+                <div class="d-flex gap-2 mb-2">
+                    <i class="fas fa-phone text-primary small mt-1"></i>
+                    <span class="small text-white-50">+91 90488 44711 (Enquiry)<br>+91 80751 02790 (Support)</span>
+                </div>
+                <div class="d-flex gap-2">
+                    <i class="fas fa-map-marker-alt text-primary small mt-1"></i>
+                    <span class="small text-white-50">Second Floor, M D Commercial Centre,<br>KK Road, Kottayam, Kerala 686001</span>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <h6 class="text-white-50 small fw-semibold mb-3">LEGAL &amp; SUPPORT</h6>
+                <div class="d-flex flex-column gap-2">
+                    <a href="/privacy-policy/" class="small text-white-50 text-decoration-none">
+                        <i class="fas fa-shield-alt me-2"></i> Privacy Policy
+                    </a>
+                    <a href="/delete-request/" class="small text-white-50 text-decoration-none">
+                        <i class="fas fa-trash-alt me-2"></i> Data Deletion Request
+                    </a>
+                    <a href="mailto:info@tissertechnologies.com" class="small text-white-50 text-decoration-none">
+                        <i class="fas fa-headset me-2"></i> Contact Support
+                    </a>
+                </div>
+            </div>
+        </div>
+        <hr class="border-secondary mt-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <small class="text-white-50">&copy; 2026 Nexgen CRM — Powered by Tisser Technologies. All rights reserved.</small>
+            <small class="text-white-50">Kerala, India</small>
+        </div>
+    </div>
+</footer>
+
+<!-- Local Bootstrap JS Bundle -->
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+</body>
+</html>
