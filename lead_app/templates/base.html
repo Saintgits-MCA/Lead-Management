@@ -545,8 +545,10 @@ body.sidebar-open {
     {% endfor %}
 </div>
 {% endif %}
+<div id="main-content">
         {% block content %}
         {% endblock %}
+</div>
     </div>
 </div>
 
@@ -621,6 +623,79 @@ function toggleUnifiedSidebar() {
     }
 }
 
+document.addEventListener("DOMContentLoaded", function () {
+
+        // Improved AJAX navigation with active class handling
+        document.body.addEventListener("click", function (e) {
+            let link = e.target.closest("a.nav-link-custom");
+
+            if (!link) return;
+
+            let url = link.getAttribute("href");
+
+            // Skip external links, anchors, logout, etc.
+            if (!url || 
+                url.startsWith("#") || 
+                url.startsWith("http") || 
+                link.target === "_blank" ||
+                link.classList.contains("logout")) {
+                return;
+            }
+
+            e.preventDefault();
+
+            fetch(url, {
+                headers: { "X-Requested-With": "XMLHttpRequest" }
+            })
+            .then(res => {
+                if (!res.ok) throw new Error("Network error");
+                return res.text();
+            })
+            .then(html => {
+                let parser = new DOMParser();
+                let doc = parser.parseFromString(html, "text/html");
+
+                let newContent = doc.querySelector("#main-content");
+                if (newContent) {
+                    document.querySelector("#main-content").innerHTML = newContent.innerHTML;
+
+                    // Update browser URL
+                    window.history.pushState({}, "", url);
+
+                    // 🔥 IMPORTANT: Re-apply active class based on the NEW URL
+                    setActiveLinks(url);
+                } else {
+                    window.location.href = url; // fallback
+                }
+            })
+            .catch(() => {
+                window.location.href = url; // fallback on error
+            });
+        });
+
+        // Function to set active class on sidebar links
+        function setActiveLinks(currentUrl) {
+            document.querySelectorAll(".nav-link-custom").forEach(link => {
+                link.classList.remove("active");
+
+                const linkUrl = link.getAttribute("href");
+
+                // Exact match OR handle multiple URLs that should be active for the same page
+                if (linkUrl === currentUrl || 
+                    (linkUrl && currentUrl.includes(linkUrl.split('?')[0]))) {  // handles query params if needed
+                    link.classList.add("active");
+                }
+            });
+        }
+
+        // Set active class on initial page load
+        setActiveLinks(window.location.pathname);
+
+        // Also handle browser back/forward buttons
+        window.addEventListener("popstate", () => {
+            setActiveLinks(window.location.pathname);
+        });
+    });
 </script>
 
 </body>
