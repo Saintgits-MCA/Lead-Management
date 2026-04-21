@@ -622,7 +622,7 @@ function toggleUnifiedSidebar() {
         );
     }
 }
-
+{% comment %} 
 document.addEventListener("DOMContentLoaded", function () {
 
         // Improved AJAX navigation with active class handling
@@ -695,7 +695,7 @@ document.addEventListener("DOMContentLoaded", function () {
         window.addEventListener("popstate", () => {
             setActiveLinks(window.location.pathname);
         });
-    });
+    }); {% endcomment %}
 </script>
 
 </body>
