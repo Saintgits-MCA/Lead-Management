@@ -86,14 +86,14 @@
     <th>Specification</th>
     <th width="80">Qty</th>
     <th width="80">Unit</th>
-    <th width="120">Rate (₹)</th>
+    <th width="100">Rate</th>
 
+    <!-- 🔥 GST SPLIT -->
     <th width="80">CGST</th>
     <th width="80">SGST</th>
     <th width="80">IGST</th>
-
-    <th width="130">Amount (₹)</th>
-    <th width="60">Action</th>
+    <th width="120"> Total</th>
+    <th width="10"></th>
 </tr>
                 </thead>
                 <tbody>
@@ -289,6 +289,7 @@
 
         function selectProduct(p) {
             input.value = p.name;
+            input.title= p.name;
             productIdInput.value = p.id;
             tr.querySelector(".rate").value = p.rate;
             tr.dataset.gst = p.gst;
@@ -309,6 +310,7 @@
             tr.querySelector(".amount").value = itemData.amount;
             tr.dataset.gst = itemData.gst;
             tr.dataset.gstType = itemData.type;
+            input.title=itemData.name;
         }
 
         // Event listeners

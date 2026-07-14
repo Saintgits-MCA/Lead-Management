@@ -38,7 +38,6 @@ textarea{
 }
 .sidebar .logo {
     margin-bottom: 40px;
-    display: flex;
     align-items: center;
     gap: 5px;
 }
@@ -217,10 +216,15 @@ textarea{
 
 <!-- SIDEBAR -->
 <div class="sidebar" id="sidebar">
-    <div class="logo fw-bold me-4">
-        <img src="{% static 'images/nexgen_crm2.png' %}" width="125" class="rounded-1 mx-0">
-       <br><span class='fs-5 me-5'>Company</span>
-    </div>
+   <div class="logo fw-bold  align-items-center">
+    {% if company.logo %}
+        <img src="{{ company.logo.url }}" width="125" class="rounded-1 mx-5 my-3 align-content-center justify-content-center align-items-center text-center" alt="{{ company.company_name }} Logo">
+    {% else %}
+        <img src="{% static 'images/nexgen_crm2.png' %}" width="125" class="rounded-1 mx-0 my-3" alt="Default Logo">
+    {% endif %}
+    <br>
+    <span class='fs-6 mt-2 ms-2'>{{ company.company_name|default:"Company" }}</span>
+</div>
 
     <ul>
         <li>
@@ -261,7 +265,11 @@ textarea{
 
         <div class="profile-dropdown">
             <div class="profile-box" id="profileToggle">
-                <img src="{% static 'images/company-admin-profile.jpeg' %}">
+                {% if company.logo %}
+        <img src="{{ company.logo.url }}"  alt="{{ company.company_name }} Logo">
+    {% else %}
+        <img src="{% static 'images/company-admin-profile.jpeg' %}"  alt="Default Logo">
+    {% endif %}
                 <span class="d-none d-md-inline">Company Admin</span>
                 <i class="bi bi-chevron-down ms-1"></i>
             </div>

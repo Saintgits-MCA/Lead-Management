@@ -166,12 +166,12 @@
     <th>Specification</th>
     <th width="80">Qty</th>
     <th width="80">Unit</th>
-    <th width="130">Rate</th>
+    <th width="100">Rate</th>
 
     <!-- 🔥 GST SPLIT -->
-    <th width="90">CGST</th>
-    <th width="90">SGST</th>
-    <th width="90">IGST</th>
+    <th width="80">CGST</th>
+    <th width="80">SGST</th>
+    <th width="80">IGST</th>
     <th width="125"> Total</th>
     <th width="10"></th>
 </tr>
@@ -440,6 +440,7 @@ function bindRow(row) {
 
 function selectProduct(row, product) {
     row.querySelector(".product-input").value = product.name;
+    row.querySelector(".product-input").title = product.name;
     row.querySelector(".product-id").value = product.id;
     row.querySelector(".rate").value = product.rate;
     row.querySelector(".product-hsn").value = product.hsn || ""; 

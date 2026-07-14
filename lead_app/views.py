@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from io import BytesIO
 import json
+import re
 import uuid
 from rest_framework.exceptions import AuthenticationFailed
 from django.db import transaction
@@ -82,6 +83,17 @@ def logout(request):
     
     messages.success(request, "You have been logged out successfully.")
     return redirect('login')
+
+
+def base(request):
+    client_id = request.session.get('client_id')
+    client=client_data.objects.get(id=client_id)
+    return render(request,'base.html',{'client':client})
+
+def company_base(request):
+    company_id = request.session.get("company_id")
+    company=company.objects.get(id=company_id)
+    return render(request,'company/base.html',{'company':company})
 
 def client_admin_dashboard(request):
     if not request.session.get('client_logged_in') or not request.session.get('client_id') :
@@ -639,24 +651,118 @@ def save_client_profile(request):
         "success": True,
         "message": "Profile updated successfully!"
     })
+
+def company_register(request):
+    if request.method == "POST":
+        # Get form data
+        company_name = request.POST.get("company_name", "").strip()
+        username = request.POST.get("username", "").strip()
+        email = request.POST.get("email", "").strip()
+        phone = request.POST.get("phone", "").strip()
+        password = request.POST.get("password", "")
+        confirm_password = request.POST.get("confirm_password", "")
+        gst = request.POST.get("gst", "").strip()
+        address = request.POST.get("address", "").strip()
+        logo = request.FILES.get("logo", None)
+        
+        # Validation
+        errors = []
+        
+        # Check if all required fields are filled
+        if not all([company_name, username, email, phone, password, address]):
+            errors.append("All fields except GST and Logo are required.")
+        
+        # Validate email format
+        if email and not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
+            errors.append("Please enter a valid email address.")
+        
+        # Validate phone number
+        if phone and not re.match(r'^[0-9]{10,15}$', phone):
+            errors.append("Phone number must be 10-15 digits.")
+        
+        # Validate password length
+        if password and len(password) < 6:
+            errors.append("Password must be at least 6 characters long.")
+        
+        # Check if passwords match
+        if password and confirm_password and password != confirm_password:
+            errors.append("Passwords do not match.")
+        
+        # Check if username already exists
+        if company.objects.filter(username=username).exists():
+            errors.append("Username already taken. Please choose another.")
+        
+        # Check if email already exists
+        if email and company.objects.filter(email=email).exists():
+            errors.append("Email already registered. Please use another email.")
+        
+        if errors:
+            for error in errors:
+                messages.error(request, error)
+            return render(request, "company/company_register.html", {
+                'company_name': company_name,
+                'username': username,
+                'email': email,
+                'phone': phone,
+                'gst': gst,
+                'address': address
+            })
+        
+        try:
+            # Create new company - password stored as plain text
+            Company = company(
+                company_name=company_name,
+                username=username,
+                email=email,
+                phone=phone,
+                password=password,  # Stored as plain text
+                gst=gst if gst else None,
+                address=address,
+                logo=logo if logo else None
+            )
+            Company.save()
+            
+            messages.success(request, "Registration successful! Please login.")
+            return redirect('company_login')
+            
+        except Exception as e:
+            messages.error(request, f"Registration failed: {str(e)}")
+            return render(request, "company/company_register.html", {
+                'company_name': company_name,
+                'username': username,
+                'email': email,
+                'phone': phone,
+                'gst': gst,
+                'address': address
+            })
+    
+    return render(request, "company/company_register.html")
 # ---------------- COMPANY LOGIN ----------------
 def company_login(request):
     if request.method == "POST":
         try:
-            company.objects.get(
-                username=request.POST.get("username"),
-                password=request.POST.get("password")
-            )
-            request.session["company_logged_in"] = True
-            messages.success(request, "Login Successful")
-            return redirect("company_dashboard")
+            username=request.POST.get("username")
+            password=request.POST.get("password")
+            Company=company.objects.get(username=username,password=password)
+            if company.objects.filter(username=username,password=password).exists():
+                if Company.password==password:
+                    request.session["company_logged_in"] = True
+                    request.session['company_id']= Company.id
+                    messages.success(request, "Login Successful")
+                    return redirect("company_dashboard")
+                else:
+                    messages.error(request, "Invalid email or password")
+            else:
+                messages.error(request, "Invalid email or password")
+                return redirect('company_login')
 
         except company.DoesNotExist:
             messages.error(request, "Invalid username or password")
 
     return render(request, "company/company_login.html")
 
-def company_logout(request):   
+def company_logout(request):  
+    request.session["company_logged_in"] = False 
     messages.success(request, "You have been logged out successfully.")
     return redirect('company_login')
 
@@ -671,7 +777,10 @@ def company_dashboard(request):
 
     # Get the most recent 5 clients (ordered by creation date descending)
     recent_clients = client_data.objects.all().order_by('-created_at')[:3]
-
+    
+    company_id = request.session.get("company_id")
+    Company = company.objects.get(id=company_id)
+    
     stats = {
         "total_clients": total_clients,
         "active_clients": active_clients,
@@ -683,6 +792,9 @@ def company_dashboard(request):
     context = {
         "stats": stats,
         "recent_clients": recent_clients,  # Pass to template
+        'company': Company,
+        'company_name': Company.company_name,
+        'company_logo': Company.logo.url if Company.logo else None,
     }
 
     return render(request, "company/company_dashboard.html", context)
@@ -690,8 +802,11 @@ def company_dashboard(request):
 
 # ---------------- CLIENT LIST ----------------
 def company_clients(request):
+    if not request.session.get("company_logged_in"):
+        return redirect("company_login")
     clients = client_data.objects.all().order_by('-created_at')
-
+    company_id = request.session.get("company_id")
+    Company = company.objects.get(id=company_id)
     # Filters
     name = request.GET.get('name', '').strip()
     phone = request.GET.get('phone', '').strip()
@@ -704,13 +819,19 @@ def company_clients(request):
     if status:
         clients = clients.filter(status=status)
 
-    return render(request, "company/clients.html", {"clients": clients})
+    return render(request, "company/clients.html", {"clients": clients,'company': Company,
+        'company_name': Company.company_name,
+        'company_logo': Company.logo.url if Company.logo else None,})
 
 
 
 # ---------------- CREATE CLIENT ----------------
 
 def create_client(request):
+    company_id = request.session.get("company_id")
+    Company = company.objects.get(id=company_id)
+    if not request.session.get("company_logged_in"):
+        return redirect("company_login")
     if request.method == "POST":
         client_name = request.POST.get("client_name", "").strip()
         business_name = request.POST.get("business_name", "").strip()
@@ -800,8 +921,10 @@ def create_client(request):
             "login_url": login_url,
             "message": "Client created successfully!"
         })
-
-    return render(request, "company/create_client.html")
+    context= {'company': Company,
+        'company_name': Company.company_name,
+        'company_logo': Company.logo.url if Company.logo else None,}
+    return render(request, "company/create_client.html",context)
 
 
 def client_detail(request, id):
@@ -847,7 +970,6 @@ def update_client(request):
             # Update text fields
             client.client_name = request.POST.get('client_name', client.client_name)
             client.business_name = request.POST.get('business_name', client.business_name)
-            client.phone_number = request.POST.get('phone_number', client.phone_number)  # usually readonly
             client.email = request.POST.get('email', client.email)
             client.gst = request.POST.get('gst') or None
             client.website = request.POST.get('website') or None
@@ -1839,7 +1961,7 @@ def employee_leads(request):
         'leads': lead,
         'enquiry_category': enquiry_category,
         'lead_sources': lead_sources,
-        "employee":employee,
+        "employee":employees,
     }
     return render(request, 'employee/employee_leads.html', context)
 
@@ -1983,33 +2105,47 @@ def employee_edit_quotation(request, quotation_id):
 
     return render(request, "employee/employee_quotation_edit.html", context)
 
+@transaction.atomic
 def employee_quotation_maker(request, lead_id=None):
     client_id = request.session.get('client_id')
     if not client_id:
         return JsonResponse({'success': False, 'message': 'Login required'})
 
     client = get_object_or_404(client_data, id=client_id)
-    client_id = request.session.get('client_id')
-    employee_id=request.session.get('employee_id')
-    if not client_id:
-        messages.error(request, "Session error.")
+    employee_id = request.session.get('employee_id')
+    
+    if not employee_id:
+        messages.error(request, "Session error. Employee not found.")
         return redirect('employee_login')
 
     try:
-        employees = employee.objects.get(id=employee_id, client_id=client_id)
+        # Get the logged-in employee object
+        logged_in_employee = employee.objects.get(id=employee_id, client_id=client_id)
     except employee.DoesNotExist:
-        messages.error(request, "Profile not found.")
+        messages.error(request, "Profile not found or access denied.")
         return redirect('employee_dashboard')
     
     if request.method == 'POST':
         try:
             lead = get_object_or_404(leads_table, id=request.POST.get('lead_id'), client=client)
+            
+            # Check if the lead is assigned to the logged-in employee
+            if lead.assign_to and lead.assign_to != logged_in_employee.employee_name:
+                messages.error(request, f"This lead is assigned to {lead.assign_to}. You can only create quotations for leads assigned to you.")
+                return redirect("employee_leads")
+            
+            # If lead is unassigned, automatically assign it to the logged-in employee
+            if not lead.assign_to:
+                lead.assign_to = logged_in_employee.employee_name
+                lead.save()
 
             gst_type = 'IGST' if Decimal(request.POST.get('igst', 0)) > 0 else 'GST'
             existing_quote = quotation.objects.filter(lead=lead, client=client).first()
             if existing_quote:
-                messages.warning(request, f"quotation already exists for this lead (quotation No: {existing_quote.id})")
+                messages.warning(request, f"Quotation already exists for this lead (Quotation No: {existing_quote.id})")
                 return redirect("employee_leads")
+            
+            # IMPORTANT FIX: Use the employee object directly
             quotations = quotation.objects.create(
                 client=client,
                 lead=lead,
@@ -2018,11 +2154,10 @@ def employee_quotation_maker(request, lead_id=None):
                 client_phone=request.POST.get('client_phone'),
                 client_email=request.POST.get('client_email', ''),
                 client_address=request.POST.get('client_address', ''),
-
                 subtotal=Decimal(request.POST.get('subtotal')),
                 gst_type=gst_type,
                 gst_amount=Decimal(request.POST.get('gst_amount')),
-                staff=employee,
+                staff=logged_in_employee,  # Use the employee object directly
                 cgst=Decimal(request.POST.get('cgst', 0)) or None,
                 sgst=Decimal(request.POST.get('sgst', 0)) or None,
                 igst=Decimal(request.POST.get('igst', 0)) or None,
@@ -2042,19 +2177,19 @@ def employee_quotation_maker(request, lead_id=None):
                     rate = Decimal(rates[i])
                     amount = qty * rate
 
-                    product = get_object_or_404(product, id=product_ids[i], client=client)
+                    product_obj = get_object_or_404(product, id=product_ids[i], client=client)
 
                     if gst_type == 'IGST':
-                        igst_amt = amount * Decimal(products.gst) / 100
+                        igst_amt = amount * Decimal(product_obj.gst) / 100
                         cgst_amt = sgst_amt = None
                     else:
-                        cgst_amt = amount * Decimal(products.gst) / 200
+                        cgst_amt = amount * Decimal(product_obj.gst) / 200
                         sgst_amt = cgst_amt
                         igst_amt = None
 
                     quotationitem.objects.create(
                         quotation=quotations,
-                        product=product,
+                        product=product_obj,
                         quantity=qty,
                         rate=rate,
                         amount=amount,
@@ -2065,23 +2200,34 @@ def employee_quotation_maker(request, lead_id=None):
 
             lead.status = "Quoted"
             lead.save()
-            messages.success(request,"quotation saved successfully")
+            messages.success(request, "Quotation saved successfully")
             return redirect("employee_leads")
 
         except Exception as e:
-            transaction.set_rollback(True)
-            messages.error(request,str(e))
-            return redirect("employee_quotation_maker")
+            messages.error(request, str(e))
+            return redirect("employee_leads")
 
     else:
         lead = get_object_or_404(leads_table, id=lead_id, client=client) if lead_id else None
+        
+        # Check authorization for GET request too
+        if lead:
+            if lead.assign_to and lead.assign_to != logged_in_employee.employee_name:
+                messages.error(request, f"This lead is assigned to {lead.assign_to}. You can only create quotations for leads assigned to you.")
+                return redirect("employee_leads")
+            
+            # Auto-assign unassigned leads
+            if not lead.assign_to:
+                lead.assign_to = logged_in_employee.employee_name
+                lead.save()
+            
         products = product.objects.filter(client=client)
 
         return render(request, 'employee/employee_quotation_maker.html', {
             'lead': lead,
             'products': products,
             'client': client,
-            "employee":employees,
+            "employee": logged_in_employee,  # Pass the employee object to template
         })
         
         

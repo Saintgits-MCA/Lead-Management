@@ -225,5 +225,16 @@ class terms_conditions(models.Model):
 class company(models.Model):
     username = models.CharField(max_length=150,unique=True)
     password = models.CharField(max_length=255,null=False,blank=False)
+    company_name = models.CharField(max_length=255, null=False, blank=False,default='Tisser')
+    email = models.EmailField(max_length=255, unique=True, null=False, blank=False)
+    phone = models.CharField(max_length=20, null=False, blank=False)
+    gst = models.CharField(max_length=20, blank=True, null=True, help_text="GST Number (Optional)")
+    address = models.TextField(null=False, blank=False,default="")
+    logo = models.ImageField(upload_to='company_logos/', blank=True, null=True)
+    
+    created_at = models.DateTimeField(auto_now=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    is_active = models.BooleanField(default=True)
+
     class Meta:
         db_table ="company"

@@ -1,0 +1,854 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Company Registration</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/all.min.css' %}">
+    <link rel="icon" href="{% static 'images/nexgen_crm2.png' %}">
+
+    <style>
+        * { box-sizing: border-box; }
+        html, body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            width: 100%;
+            height: 100vh;
+            background: #f4f6fb;
+            overflow: hidden;
+        }
+
+        .register-container {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ===== LEFT SECTION - Solid Color ===== */
+        .register-left {
+            flex: 1;
+            position: relative;
+            background: linear-gradient(135deg, #1e1b4b, #312e81);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            padding: 40px;
+            min-width: 300px;
+        }
+
+        .register-left::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: url("{% static 'images/bg.png' %}") no-repeat center / cover;
+            opacity: 0.08;
+        }
+
+        .left-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            animation: fadeUp 1s ease;
+        }
+
+        .left-content .brand-icon {
+            margin-bottom: 20px;
+            display: block;
+            opacity: 0.9;
+        }
+
+        .left-content h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+
+        .left-content p {
+            font-size: 1rem;
+            opacity: 0.85;
+            line-height: 1.6;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .left-content .features {
+            margin-top: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: flex-start;
+            max-width: 320px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .left-content .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            opacity: 0.85;
+            width: 100%;
+            padding: 6px 0;
+        }
+
+        .left-content .feature-item i {
+            width: 20px;
+            text-align: center;
+            color: #818cf8;
+        }
+
+        /* ===== RIGHT SECTION ===== */
+        .register-right {
+            flex: 1.5;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 30px 40px;
+            overflow-y: auto;
+        }
+
+        .register-right::-webkit-scrollbar {
+            width: 4px;
+        }
+        .register-right::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .register-right::-webkit-scrollbar-thumb {
+            background: #c4b5fd;
+            border-radius: 2px;
+        }
+
+        .register-box {
+            width: 100%;
+            max-width: 720px;
+            padding: 10px 0;
+        }
+
+        .register-box .header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .logo-img {
+            width: 178px;
+            height: 148px;
+            object-fit: contain;
+            display: block;
+            margin: 0 auto 10px;
+            border-radius: 12px;
+        }
+
+        .register-box h2 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #1e1b4b;
+            margin-bottom: 2px;
+        }
+
+        .register-box .subtitle {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        /* ===== 2-COLUMN FORM GRID ===== */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px 20px;
+        }
+
+        .form-group {
+            position: relative;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-group label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #374151;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .form-group label .required {
+            color: #dc2626;
+            margin-left: 2px;
+        }
+
+        .form-group label .optional {
+            color: #9ca3af;
+            font-weight: 400;
+            font-size: 0.7rem;
+        }
+
+        .form-group input, 
+        .form-group textarea {
+            width: 100%;
+            padding: 9px 14px;
+            border-radius: 10px;
+            border: 2px solid #e5e7eb;
+            font-size: 0.9rem;
+            transition: 0.25s ease;
+            background: #fafafa;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 56px;
+            max-height: 80px;
+        }
+
+        .form-group input:focus, 
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+            background: #ffffff;
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: #9ca3af;
+            font-size: 0.85rem;
+        }
+
+        /* ===== FILE UPLOAD ===== */
+        .file-upload-wrapper {
+            border: 2px dashed #e5e7eb;
+            border-radius: 10px;
+            padding: 16px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s ease;
+            background: #fafafa;
+            position: relative;
+        }
+
+        .file-upload-wrapper:hover {
+            border-color: #6366f1;
+            background: #f5f3ff;
+        }
+
+        .file-upload-wrapper input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+            z-index: 2;
+        }
+
+        .file-upload-wrapper .upload-icon {
+            font-size: 1.5rem;
+            color: #818cf8;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .file-upload-wrapper .upload-text {
+            color: #6b7280;
+            font-size: 0.8rem;
+        }
+
+        .file-upload-wrapper .upload-text strong {
+            color: #6366f1;
+        }
+
+        .file-upload-wrapper .file-name {
+            display: none;
+            color: #10b981;
+            font-weight: 500;
+            font-size: 0.8rem;
+            margin-top: 4px;
+        }
+
+        /* ===== PASSWORD ===== */
+        .password-wrapper {
+            position: relative;
+        }
+
+        .password-wrapper input {
+            padding-right: 40px;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #9ca3af;
+            cursor: pointer;
+            padding: 4px;
+            font-size: 0.9rem;
+        }
+
+        .password-toggle:hover {
+            color: #6366f1;
+        }
+
+        .password-strength {
+            font-size: 0.7rem;
+            margin-top: 3px;
+            font-weight: 500;
+        }
+
+        .password-strength.weak { color: #dc2626; }
+        .password-strength.medium { color: #f59e0b; }
+        .password-strength.strong { color: #10b981; }
+
+        /* ===== BUTTON ===== */
+        .btn-register {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            color: #fff;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.3s ease;
+            box-shadow: 0 4px 14px rgba(99,102,241,0.3);
+            margin-top: 6px;
+        }
+
+        .btn-register:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(99,102,241,0.4);
+        }
+
+        .btn-register:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ===== LINKS ===== */
+        .login-link {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 0.85rem;
+            color: #6b7280;
+        }
+
+        .login-link a {
+            color: #6366f1;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+
+        .footer-text {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 0.7rem;
+            color: #9ca3af;
+        }
+
+        /* ===== TOAST ===== */
+        .toast-container {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            z-index: 9999;
+            max-width: 360px;
+        }
+
+        .custom-toast {
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            color: #fff;
+            font-size: 0.9rem;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            animation: slideToast 0.4s ease, fadeOut 0.4s ease 3s forwards;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .custom-toast .toast-close {
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.8);
+            font-size: 1.1rem;
+            cursor: pointer;
+            padding: 0 4px;
+        }
+
+        .custom-toast .toast-close:hover {
+            color: #fff;
+        }
+
+        .custom-toast.error { background: #dc2626; }
+        .custom-toast.success { background: #10b981; }
+        .custom-toast.warning { background: #f59e0b; }
+        .custom-toast.info { background: #6366f1; }
+
+        /* ===== ANIMATIONS ===== */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideToast {
+            from { opacity: 0; transform: translateX(40px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes fadeOut {
+            to { opacity: 0; transform: translateX(40px); }
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 1024px) {
+            .form-grid {
+                gap: 12px 16px;
+            }
+            .register-box {
+                max-width: 640px;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .register-container {
+                flex-direction: column;
+                height: 100vh;
+            }
+
+            .register-left {
+                flex: 0 0 auto;
+                padding: 30px 20px;
+                min-height: 180px;
+            }
+
+            .register-left h1 {
+                font-size: 1.8rem;
+            }
+
+            .register-left .features {
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+                max-width: 100%;
+                margin-top: 12px;
+            }
+
+            .register-left .feature-item {
+                width: auto;
+                font-size: 0.8rem;
+                padding: 4px 8px;
+            }
+
+            .register-right {
+                flex: 1;
+                padding: 20px 24px;
+                overflow-y: auto;
+            }
+
+            .register-box {
+                max-width: 100%;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 12px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .register-left .brand-icon {
+                font-size: 2.5rem;
+            }
+
+            .register-left h1 {
+                font-size: 1.5rem;
+            }
+
+            .register-right {
+                padding: 16px;
+            }
+
+            .register-box h2 {
+                font-size: 1.3rem;
+            }
+
+            .register-box .header {
+                margin-bottom: 16px;
+            }
+
+            .logo-img {
+                width: 178px;
+                height: 148px;
+            }
+
+            .toast-container {
+                top: 10px;
+                right: 10px;
+                left: 10px;
+                max-width: none;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .register-left {
+                padding: 20px 16px;
+                min-height: 140px;
+            }
+
+            .register-left h1 {
+                font-size: 1.3rem;
+            }
+
+            .register-left p {
+                font-size: 0.85rem;
+            }
+
+            .register-left .feature-item {
+                font-size: 0.7rem;
+                padding: 3px 6px;
+            }
+
+            .register-right {
+                padding: 12px;
+            }
+
+            .form-group input,
+            .form-group textarea {
+                padding: 8px 12px;
+                font-size: 0.85rem;
+            }
+
+            .file-upload-wrapper {
+                padding: 12px 16px;
+            }
+
+            .file-upload-wrapper .upload-icon {
+                font-size: 1.2rem;
+            }
+
+            .file-upload-wrapper .upload-text {
+                font-size: 0.75rem;
+            }
+
+            .btn-register {
+                padding: 10px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    {% if messages %}
+    <div class="toast-container">
+        {% for message in messages %}
+        <div class="custom-toast {{ message.tags|default:'info' }}">
+            <span>
+                {% if message.tags == 'success' %}✅{% elif message.tags == 'error' %}❌{% elif message.tags == 'warning' %}⚠️{% else %}ℹ️{% endif %}
+                {{ message }}
+            </span>
+            <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="register-container">
+        <!-- LEFT SECTION - Solid Color -->
+        <div class="register-left">
+            <div class="left-content">
+                <span class="brand-icon"><img src="{% static 'images/nexgen_crm2.png' %}" class="logo-img" alt="Logo"></span>
+                <h1>Company Registration</h1>
+                <p>Create your company account and start managing your CRM platform.</p>
+                <div class="features">
+                    <div class="feature-item"><i class="fas fa-users"></i> Manage Clients</div>
+                    <div class="feature-item"><i class="fas fa-shield-alt"></i> Role Permissions</div>
+                    <div class="feature-item"><i class="fas fa-credit-card"></i> Track Payments</div>
+                    <div class="feature-item"><i class="fas fa-bell"></i> Smart Reminders</div>
+                    <div class="feature-item"><i class="fas fa-chart-line"></i> Analytics</div>
+                    <div class="feature-item"><i class="fas fa-headset"></i> 24/7 Support</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT SECTION -->
+        <div class="register-right">
+            <div class="register-box">
+                <div class="header">
+                    <img src="{% static 'images/nexgen_crm2.png' %}" class="logo-img" alt="Logo">
+                    <h2>Create Account</h2>
+                    <p class="subtitle">Register your company to get started</p>
+                </div>
+
+                <form method="POST" enctype="multipart/form-data" id="registerForm" novalidate>
+                    {% csrf_token %}
+
+                    <div class="form-grid">
+                        <!-- Company Name -->
+                        <div class="form-group">
+                            <label>Company Name <span class="required">*</span></label>
+                            <input type="text" name="company_name" placeholder="Enter company name" 
+                                   value="{{ company_name|default:'' }}" required autofocus>
+                        </div>
+
+                        <!-- Username -->
+                        <div class="form-group">
+                            <label>Username <span class="required">*</span></label>
+                            <input type="text" name="username" placeholder="Choose a username" 
+                                   value="{{ username|default:'' }}" required>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="form-group">
+                            <label>Email Address <span class="required">*</span></label>
+                            <input type="email" name="email" placeholder="Enter your email" 
+                                   value="{{ email|default:'' }}" required>
+                        </div>
+
+                        <!-- Phone -->
+                        <div class="form-group">
+                            <label>Phone Number <span class="required">*</span></label>
+                            <input type="tel" name="phone" placeholder="Phone number" 
+                                   value="{{ phone|default:'' }}" required>
+                        </div>
+
+                        <!-- GST (Optional) -->
+                        <div class="form-group">
+                            <label>GST Number <span class="optional">(Optional)</span></label>
+                            <input type="text" name="gst" placeholder="e.g., 22AAAAA0000A1Z5" 
+                                   value="{{ gst|default:'' }}">
+                        </div>
+
+                        <!-- Address -->
+                        <div class="form-group">
+                            <label>Address <span class="required">*</span></label>
+                            <textarea name="address" placeholder="Enter company address" required>{{ address|default:'' }}</textarea>
+                        </div>
+
+                        <!-- Logo (Full Width) -->
+                        <div class="form-group full-width">
+                            <label>Company Logo <span class="optional">(Optional)</span></label>
+                            <div class="file-upload-wrapper" id="fileUploadWrapper">
+                                <span class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></span>
+                                <div class="upload-text">
+                                    <strong>Click to upload</strong> or drag and drop<br>
+                                    <small style="color:#9ca3af;">PNG, JPG, SVG (Max 5MB)</small>
+                                </div>
+                                <div class="file-name" id="fileName">✅ <span></span></div>
+                                <input type="file" name="logo" accept="image/*" id="logoInput">
+                            </div>
+                        </div>
+
+                        <!-- Password -->
+                        <div class="form-group">
+                            <label>Password <span class="required">*</span></label>
+                            <div class="password-wrapper">
+                                <input type="password" id="password" name="password" placeholder="Create password (min 6)" required>
+                                <button type="button" class="password-toggle" id="togglePassword">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <div id="passwordStrength" class="password-strength"></div>
+                        </div>
+
+                        <!-- Confirm Password -->
+                        <div class="form-group">
+                            <label>Confirm Password <span class="required">*</span></label>
+                            <div class="password-wrapper">
+                                <input type="password" id="confirmPassword" name="confirm_password" placeholder="Confirm password" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-register" id="registerBtn">
+                        <i class="fas fa-user-plus mr-2"></i> Register Company
+                    </button>
+                </form>
+
+                <div class="login-link">
+                    Already have an account? <a href="{% url 'company_login' %}">Login here</a>
+                </div>
+
+                <div class="footer-text">
+                    © <span id="currentYear"></span> Tisser Technologies LLP
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== Password Toggle =====
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordField = document.getElementById('password');
+
+        if (togglePassword && passwordField) {
+            togglePassword.addEventListener('click', function() {
+                const type = passwordField.type === 'password' ? 'text' : 'password';
+                passwordField.type = type;
+                this.querySelector('i').classList.toggle('fa-eye');
+                this.querySelector('i').classList.toggle('fa-eye-slash');
+            });
+        }
+
+        // ===== Password Strength =====
+        const passwordInput = document.getElementById('password');
+        const passwordStrength = document.getElementById('passwordStrength');
+
+        passwordInput.addEventListener('input', function() {
+            const val = this.value;
+            let strength = '';
+            let className = '';
+
+            if (val.length === 0) {
+                strength = '';
+                className = '';
+            } else if (val.length < 6) {
+                strength = '🔴 Weak - Minimum 6 characters required';
+                className = 'weak';
+            } else if (val.length < 10) {
+                strength = '🟡 Medium - Good password';
+                className = 'medium';
+            } else {
+                strength = '🟢 Strong - Excellent password';
+                className = 'strong';
+            }
+
+            passwordStrength.textContent = strength;
+            passwordStrength.className = 'password-strength ' + className;
+        });
+
+        // ===== Password Match =====
+        const confirmPassword = document.getElementById('confirmPassword');
+
+        confirmPassword.addEventListener('input', function() {
+            const password = passwordInput.value;
+
+            if (password.length === 0 || this.value.length === 0) {
+                this.style.borderColor = '#e5e7eb';
+                return;
+            }
+
+            if (password === this.value) {
+                this.style.borderColor = '#10b981';
+            } else {
+                this.style.borderColor = '#dc2626';
+            }
+        });
+
+        // ===== File Upload =====
+        const logoInput = document.getElementById('logoInput');
+        const fileNameDisplay = document.getElementById('fileName');
+        const fileUploadWrapper = document.getElementById('fileUploadWrapper');
+
+        logoInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const span = fileNameDisplay.querySelector('span');
+                span.textContent = file.name;
+                fileNameDisplay.style.display = 'block';
+                fileUploadWrapper.style.borderColor = '#10b981';
+                fileUploadWrapper.style.background = '#f0fdf4';
+            } else {
+                fileNameDisplay.style.display = 'none';
+                fileUploadWrapper.style.borderColor = '#e5e7eb';
+                fileUploadWrapper.style.background = '#fafafa';
+            }
+        });
+
+        // ===== Drag and Drop =====
+        fileUploadWrapper.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#6366f1';
+            this.style.background = '#f5f3ff';
+        });
+
+        fileUploadWrapper.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#e5e7eb';
+            this.style.background = '#fafafa';
+        });
+
+        fileUploadWrapper.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#e5e7eb';
+            this.style.background = '#fafafa';
+
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.type.startsWith('image/')) {
+                    logoInput.files = files;
+                    const span = fileNameDisplay.querySelector('span');
+                    span.textContent = file.name;
+                    fileNameDisplay.style.display = 'block';
+                    this.style.borderColor = '#10b981';
+                    this.style.background = '#f0fdf4';
+                } else {
+                    alert('Please upload an image file.');
+                }
+            }
+        });
+
+        // ===== Form Validation =====
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            const password = passwordInput.value;
+            const confirm = confirmPassword.value;
+            const submitBtn = document.getElementById('registerBtn');
+
+            if (password.length < 6) {
+                e.preventDefault();
+                alert('Password must be at least 6 characters long.');
+                passwordInput.focus();
+                return false;
+            }
+
+            if (password !== confirm) {
+                e.preventDefault();
+                alert('Passwords do not match.');
+                confirmPassword.focus();
+                return false;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Registering...';
+            return true;
+        });
+
+        // ===== Auto-hide Toast =====
+        document.querySelectorAll('.custom-toast').forEach(function(toast) {
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.remove();
+                }
+            }, 3500);
+        });
+
+        // ===== Current Year =====
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+    </script>
+</body>
+</html>

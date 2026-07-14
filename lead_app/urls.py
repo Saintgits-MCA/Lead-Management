@@ -16,6 +16,7 @@ urlpatterns = [
     path("profile/", views.client_admin_profile, name="client_admin_profile"),
     path("profile/save/", views.save_client_profile, name="save_client_profile"),
     path("company/login/", views.company_login, name="company_login"),
+    path('company/register/', views.company_register, name='company_register'),
     path("company/dashboard/", views.company_dashboard, name="company_dashboard"),
     path("company/clients/", views.company_clients, name="company_clients"),
     path("company/clients/create/", views.create_client, name="create_client"),
