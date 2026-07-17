@@ -49,6 +49,8 @@ class employee(models.Model):
     Password = models.CharField(max_length=255,null=True)
     def __str__(self):
         return f"{self.employee_code} - {self.employee_name}"
+    
+    class Meta:
         db_table = "employee" 
         
 class leadsource(models.Model):

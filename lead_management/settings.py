@@ -96,7 +96,8 @@ WSGI_APPLICATION = 'lead_management.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'leads',      # Database name
+        # 'NAME': 'leads',
+        'NAME': 'myquotedblive',        # Database name
         'USER': 'root',         # MySQL username
         'PASSWORD': 'root', # MySQL password
         'HOST': 'localhost',               # Database host
