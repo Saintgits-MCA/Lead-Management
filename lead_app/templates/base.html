@@ -491,14 +491,19 @@ body.sidebar-open {
 
 <!-- SIDEBAR -->
 <div class="sidebar" id="sidebar">
-    <div class="logo ms-2">
+    {% comment %} <div class="logo ms-2">
         {%if client.logo%}
         <img src="/media/{{client.logo}}" width="70" class="rounded-1">
-        <span>{{client.client_name}}</span>
         {%else%}
         <img src="{% static 'images/nexgen_crm2.png' %}" width="120" class="rounded-1">
+           {%endif%}
         <span>Client</span>
-        {%endif%}
+     
+    </div> {% endcomment %}
+
+    <div class="logo ms-2">
+        <img src="{% static 'images/nexgen_crm2.png' %}" width="120" class="rounded-1">
+        <span>Client</span>
     </div>
 
     <!-- Dashboard -->
@@ -607,13 +612,13 @@ body.sidebar-open {
         <h6 class="fw-bolder ms-2 mb-0 d-inline-block">{{ client.client_name }}</h6>
     </div>
      <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-                    <li type="none" class="text-decoration-none text-center pt-3"><h6 class="fw-bolder ">{%if client.logo%}
+                    <li type="none" class="text-decoration-none pt-3"><code class="fw-bold text-dark text-sm">{%if client.logo%}
                 <img src="/media/{{client.logo}}"
                      class="profile-img"
                     >
                 {%else%}
                 <img src="{% static 'images/profile.png' %}" class="profile-img">
-                 {%endif%}{{client.client_name}}</h6></li>
+                 {%endif%}{{client.client_name}}</code></li>
                     
                     <li class="text-white"><hr class="bg-white text-dark"></li>
                     <li><a class="dropdown-item" href="{%url 'client_admin_profile'%}"><i class="fas fa-user me-2"></i>Profile</a></li>
