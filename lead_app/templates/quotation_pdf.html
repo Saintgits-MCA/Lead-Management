@@ -388,11 +388,11 @@ img {
                 1st Floor , Western Green Enterprises Bldg., Near V Cinemas, MC Road, Kothattukulam, Pin 686662
             </div>
         {% endif %}
-            <button id="downloadPdfBtn" class="no-print btn btn-outline-danger btn-sm ms-auto" data-quotation-id="{{ quotation.id }}">
+            {% comment %} <button id="downloadPdfBtn" class="no-print btn btn-outline-danger btn-sm ms-auto" data-quotation-id="{{ quotation.id }}">
                 <i class="fas fa-file-pdf"></i> Download PDF
-            </button>
+            </button> {% endcomment %}
       
-            <button id="printBtn" class="btn btn-outline-dark btn-sm no-print mt-0">
+            <button id="printBtn" class="btn btn-outline-dark btn-sm no-print mt-0 float-end">
                 <i class="fas fa-print"></i> Print
             </button>
                    {% comment %} <a href="{%url 'leads'%}"><button id="backBtn" class="no-print btn btn-primary btn-sm ms-auto" data-quotation-id="{{ quotation.id }}">
@@ -564,7 +564,7 @@ img {
 <script>
 
         // Download PDF
-        document.getElementById('downloadPdfBtn').addEventListener('click', function(e) {
+        {% comment %} document.getElementById('downloadPdfBtn').addEventListener('click', function(e) {
             e.preventDefault();
             const btn = this;
             const originalText = btn.innerHTML;
@@ -607,7 +607,7 @@ img {
                     btn.innerHTML = originalText;
                     btn.disabled = false;
                 });
-        });
+        }); {% endcomment %}
 
          // Print
         document.getElementById('printBtn').addEventListener('click', function() {

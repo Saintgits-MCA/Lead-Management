@@ -1408,16 +1408,6 @@ def quotation_pdf(request, quotation_id,client_id=None):
         'show_cgst_sgst': show_cgst_sgst,
     }
 
-    # html = render_to_string('quotation_pdf.html', context)
-    # result = BytesIO()
-    # pdf = pisa.pisaDocument(BytesIO(html.encode("UTF-8")), result)
-
-    # if not pdf.err:
-    #     response = HttpResponse(result.getvalue(), content_type='application/pdf')
-    #     response['Content-Disposition'] = f'inline; filename="quotation_{quotation.id}.pdf"'
-    #     return response
-
-    # return HttpResponse("Error generating PDF", status=500)
     return render(request, 'quotation_pdf.html', context)
 
 def edit_quotation(request, quotation_id):
@@ -1446,6 +1436,7 @@ def edit_quotation(request, quotation_id):
         else:
             quotations.gst_type = 'GST'
             quotations.gst_amount = quotations.cgst + quotations.sgst
+            
         if quotations.version in [None, "", "1"]:
             quotations.version = "2"
         else:
@@ -1456,7 +1447,7 @@ def edit_quotation(request, quotation_id):
         product_ids = request.POST.getlist("product_id[]")
         quantities = request.POST.getlist("quantity[]")
         rates = request.POST.getlist("rate[]")
-        amounts = request.POST.getlist("amount[]")  # taxable amount per item
+        amounts = request.POST.getlist("amount[]")
         descriptions = request.POST.getlist("description[]")
         units = request.POST.getlist("unit[]")
         specs = request.POST.getlist('spec[]')
@@ -1465,15 +1456,18 @@ def edit_quotation(request, quotation_id):
         # Delete removed items
         quotationitem.objects.filter(quotation=quotations).exclude(product_id__in=incoming_product_ids).delete()
 
-        # Update or create items with per-item GST
-        gst_type = quotation.gst_type
+        gst_type = quotations.gst_type
 
         for i in range(len(product_ids)):
             pid = product_ids[i]
             if not pid:
                 continue
 
-            products = get_object_or_404(product, id=pid, client=client)
+            try:
+                products = product.objects.get(id=pid, client=client)
+            except product.DoesNotExist:
+                continue
+
             qty = int(quantities[i] or 1)
             rate = Decimal(rates[i] or "0")
             taxable_amount = qty * rate
@@ -1487,24 +1481,59 @@ def edit_quotation(request, quotation_id):
                 cgst_amt = sgst_amt = taxable_amount * gst_rate / 200
                 igst_amt = None
             
-            quotationitem.objects.update_or_create(
-    quotation=quotations,
-    product_id=pid,
-    defaults={
-        'product': products,
-        'description': descriptions[i] if i < len(descriptions) else "",
-        'spec':specs[i] if i < len(specs) else "",
-        'unit': units[i] if i < len(units) else "",
-        'quantity': qty,
-        'rate': rate,
-        'amount': taxable_amount,
-        'cgst': cgst_amt,
-        'sgst': sgst_amt,
-        'igst': igst_amt,
-    }
-)
+            # ✅ FIX: Handle duplicate records properly
+            existing_items = quotationitem.objects.filter(quotation=quotations, product_id=pid)
+            
+            if existing_items.count() > 1:
+                # If multiple exist, delete all and create one new
+                existing_items.delete()
+                quotationitem.objects.create(
+                    quotation=quotations,
+                    product=products,
+                    product_id=pid,
+                    description=descriptions[i] if i < len(descriptions) else "",
+                    spec=specs[i] if i < len(specs) else "",
+                    unit=units[i] if i < len(units) else "",
+                    quantity=qty,
+                    rate=rate,
+                    amount=taxable_amount,
+                    cgst=cgst_amt,
+                    sgst=sgst_amt,
+                    igst=igst_amt,
+                )
+            elif existing_items.count() == 1:
+                # If one exists, update it
+                item = existing_items.first()
+                item.product = products
+                item.product_id = pid
+                item.description = descriptions[i] if i < len(descriptions) else ""
+                item.spec = specs[i] if i < len(specs) else ""
+                item.unit = units[i] if i < len(units) else ""
+                item.quantity = qty
+                item.rate = rate
+                item.amount = taxable_amount
+                item.cgst = cgst_amt
+                item.sgst = sgst_amt
+                item.igst = igst_amt
+                item.save()
+            else:
+                # If none exists, create new
+                quotationitem.objects.create(
+                    quotation=quotations,
+                    product=products,
+                    product_id=pid,
+                    description=descriptions[i] if i < len(descriptions) else "",
+                    spec=specs[i] if i < len(specs) else "",
+                    unit=units[i] if i < len(units) else "",
+                    quantity=qty,
+                    rate=rate,
+                    amount=taxable_amount,
+                    cgst=cgst_amt,
+                    sgst=sgst_amt,
+                    igst=igst_amt,
+                )
 
-        messages.success(request, "quotation updated successfully!")
+        messages.success(request, "Quotation updated successfully!")
         return redirect("leads")
 
     # GET: Load edit form
