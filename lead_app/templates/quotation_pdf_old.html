@@ -246,7 +246,7 @@ body {
     line-height: 1.6;
     color: #333;
     text-align: justify;
-    page-break-inside: avoid;
+    page-break-before: always;
 }
 
 
@@ -269,6 +269,9 @@ body {
 
 .terms-conditions li {
     margin-bottom: 4px;
+}
+.terms-conditions {
+    page-break-before: always;
 }
 
 .notes{
@@ -321,7 +324,7 @@ img {
             margin-left: 10px;
         }
 
-        /* Your existing styles - keep all of them */
+        /* Your existing styles – keep all of them */
         .header-left, .header-right { display: table-cell; vertical-align: top; padding:0; line-height: 1.2; }
         .header-left { width: 60%; }
         .header-right { width: 40%; text-align: right; }
@@ -355,37 +358,6 @@ img {
     overflow-wrap: break-word;
 }
 </style>
-
-{% if client.id == 27 %}
-<style>
-/* ================= CLIENT #27 THEME OVERRIDE (blue instead of red) ================= */
-.company-name,
-.quotation-title,
-.section-title,
-.amount-words-label,
-.thank-you,
-.terms-conditions-title,
-.amount-words b,
-#pdfContent h2.text-center {
-    color: #1e50c4 !important;
-}
-
-.quotation-meta,
-.amount-words,
-.notes {
-    border-left-color: #1e50c4 !important;
-}
-
-.section-title,
-.header {
-    border-bottom-color: #1e50c4 !important;
-}
-
-.items-table thead {
-    background: #1e50c4 !important;
-}
-</style>
-{% endif %}
 </head>
 
 <body>
@@ -406,21 +378,21 @@ img {
             <div class="company-details">
                 {{ client.address|linebreaksbr }}<br>
                 Email: {{ client.email }} | Phone: {{ client.phone_number }}<br>
-                <strong>GST No:</strong> {{ client.gst }}
+                <h6>GST No: {{ client.gst }}</h6> 
             </div>
         </div>
                 <div class="float-end">
-                     {% if client.id == 27 %}
+                {% if client.id == 27 %}
             <div class="mt-1" style="flex-shrink: 0;">
-                <center><img src="{% static 'images/TATA PRAVISH.jpeg' %}" alt="Fortuno Logo" style="max-height: 100px; width: auto; display: block;"></center>
-                {% comment %} 1st Floor , Western Green Enterprises Bldg., Near V Cinemas, MC Road, Kothattukulam, Pin 686662 {% endcomment %}
+                <center><img src="{% static 'images/TATA PRAVISH.jpeg' %}" alt="Fortuno Logo" style="max-height: 70px; width: auto; display: block;"></center>
+                1st Floor , Western Green Enterprises Bldg., Near V Cinemas, MC Road, Kothattukulam, Pin 686662
             </div>
         {% endif %}
-            <button id="downloadPdfBtn" class="no-print btn {% if client.id == 27 %}btn-outline-primary{% else %}btn-outline-danger{% endif %} btn-sm ms-auto" data-quotation-id="{{ quotation.id }}">
+            {% comment %} <button id="downloadPdfBtn" class="no-print btn btn-outline-danger btn-sm ms-auto" data-quotation-id="{{ quotation.id }}">
                 <i class="fas fa-file-pdf"></i> Download PDF
-            </button>
+            </button> {% endcomment %}
       
-            <button id="printBtn" class="btn btn-outline-dark btn-sm no-print mt-0">
+            <button id="printBtn" class="btn btn-outline-dark btn-sm no-print mt-0 float-end">
                 <i class="fas fa-print"></i> Print
             </button>
                    {% comment %} <a href="{%url 'leads'%}"><button id="backBtn" class="no-print btn btn-primary btn-sm ms-auto" data-quotation-id="{{ quotation.id }}">
@@ -458,8 +430,7 @@ img {
         <strong>{{ quotation.client_name }}</strong><br>
         {{ quotation.client_address|linebreaksbr }}<br>
         Phone: {{ quotation.client_phone }}<br>
-        Email: {{ quotation.client_email }}<br>
-        {% if client.id == 27 %}Assign To: <strong>{{ quotation.lead.assign_to|default:"Unassigned" }}</strong>{% endif %}
+        Email: {{ quotation.client_email }}
     </td>
 
     <td width="50%" valign="top" align="right">
@@ -501,7 +472,7 @@ img {
         <span class="product-name">{{ item.product.name }}
         {% if item.description %}<br><small>{{ item.description }}</small>{% endif %}</span>
     </td>
-   <td class="spec-cell ps-3">{{ item.spec|default:' -' }}</td>
+   <td class="spec-cell ps-3">{{ item.spec|default:' –' }}</td>
     <td>{{ item.product.hsn_code }}</td>
     <td class="text-center">{{ item.quantity }}{% if item.unit %} {{ item.unit }}{% endif %}</td>
     <td class="text-right">{{ item.rate|floatformat:2 }}</td>
@@ -523,12 +494,6 @@ img {
 <!-- TOTALS -->
 <div class="totals-section">
 <table class="totals-table">
-{% if client.id == 27 %}
-<tr>
-    <td>Total Qty</td>
-    <td class="text-right">{{ total_quantity }}</td>
-</tr>
-{% endif %}
 <tr>
     <td>Subtotal</td>
     <td class="text-right">Rs. {{ quotation.subtotal|floatformat:2 }}</td>
@@ -583,13 +548,13 @@ img {
     {% endif %}
 
 {% if terms_conditions and terms_conditions.content %}
-<div class="terms-conditions page-break">
-    <div class="terms-conditions-title" style="padding-top:5px;">
+<div class="terms-conditions">
+    <div class="terms-conditions-title" style="padding-top:50px;">
         Terms and Conditions
     </div>
 
     <div style="font-size:12px; text-align:justify; text-justify:inter-word;">
-        {{ terms_conditions.content|safe }}
+        {{ terms_conditions.content|linebreaks|safe }}
     </div>
 </div>
 {% endif %}
@@ -599,7 +564,7 @@ img {
 <script>
 
         // Download PDF
-        document.getElementById('downloadPdfBtn').addEventListener('click', function(e) {
+        {% comment %} document.getElementById('downloadPdfBtn').addEventListener('click', function(e) {
             e.preventDefault();
             const btn = this;
             const originalText = btn.innerHTML;
@@ -627,7 +592,7 @@ img {
                         allowTaint: false
                     },
                     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                    pagebreak: { mode: ['css'] }
+                    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
                 })
                 .save()
                 .then(() => {
@@ -642,7 +607,7 @@ img {
                     btn.innerHTML = originalText;
                     btn.disabled = false;
                 });
-        });
+        }); {% endcomment %}
 
          // Print
         document.getElementById('printBtn').addEventListener('click', function() {

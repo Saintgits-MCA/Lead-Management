@@ -1396,6 +1396,9 @@ def quotation_pdf(request, quotation_id,client_id=None):
     show_igst = 'IGST' in gst_types
     show_cgst_sgst = 'GST' in gst_types
 
+    # Sum of all item quantities, for the "Total Qty" row in the totals box
+    total_quantity = sum(item['quantity'] for item in items if item['quantity'])
+
     terms_condition = terms_conditions.objects.filter(client=request.session.get('client_id') or client_id).first()
 
     context = {
@@ -1406,8 +1409,19 @@ def quotation_pdf(request, quotation_id,client_id=None):
         'terms_conditions': terms_condition if terms_condition else None,
         'show_igst': show_igst,
         'show_cgst_sgst': show_cgst_sgst,
+        'total_quantity': total_quantity,
     }
 
+    # html = render_to_string('quotation_pdf.html', context)
+    # result = BytesIO()
+    # pdf = pisa.pisaDocument(BytesIO(html.encode("UTF-8")), result)
+
+    # if not pdf.err:
+    #     response = HttpResponse(result.getvalue(), content_type='application/pdf')
+    #     response['Content-Disposition'] = f'inline; filename="quotation_{quotation.id}.pdf"'
+    #     return response
+
+    # return HttpResponse("Error generating PDF", status=500)
     return render(request, 'quotation_pdf.html', context)
 
 def edit_quotation(request, quotation_id):

@@ -23,13 +23,8 @@
     border: 1px solid #e9ecef;
     padding: 16px;
     border-radius: 8px;
-    white-space: pre-wrap;
     line-height: 1.6;
-}
-
-.editable {
-    border-color: #ced4da;
-    transition: all 0.2s;
+    min-height: 100px;
 }
 
 .terms-display:empty::before {
@@ -37,8 +32,42 @@
     color: #6c757d;
     font-style: italic;
 }
-</style>
 
+/* Quill editor styles */
+.ql-editor {
+    min-height: 300px;
+    font-size: 15px;
+    line-height: 1.8;
+}
+
+.ql-toolbar {
+    background: #f8f9fa;
+    border-radius: 8px 8px 0 0;
+}
+
+.ql-container {
+    border-radius: 0 0 8px 8px;
+    background: white;
+}
+
+#quillEditor {
+    min-height: 300px;
+}
+
+.terms-display ul, 
+.terms-display ol {
+    padding-left: 20px;
+}
+
+.terms-display blockquote {
+    border-left: 4px solid #ccc;
+    margin: 10px 0;
+    padding-left: 16px;
+    color: #666;
+}
+</style>
+<link rel="stylesheet" href="{% static 'css/quill.snow.css' %}">
+<script src="{% static 'js/quill.js' %}"></script>
 <div class="ms-auto text-end top-action mb-4">
     <button type="button" class="btn btn-primary" id="editBtn">
         <i class="fas fa-edit"></i>
@@ -54,19 +83,17 @@
 
         <!-- Display mode -->
         <div class="terms-display mb-4" id="termsDisplay">
-            {{ terms.content|linebreaks }}
+            {{ terms.content|safe }}
         </div>
 
         <!-- Edit mode – hidden at first -->
         <div id="termsEditArea" class="d-none mb-4">
-            <label class="form-label">Terms Content <span class="text-danger">*</span></label>
-            <textarea class="form-control editable" name="content" rows="16" id="termsTextarea" disabled>
-{{ terms.content }}
-            </textarea>
-            <small class="text-muted mt-2 d-block">
-                Write your full  Terms and Conditions here. Line breaks are preserved.
-            </small>
-        </div>
+    <label class="form-label">Terms Content <span class="text-danger">*</span></label>
+    <div id="quillEditor"></div>
+    <small class="text-muted mt-2 d-block">
+        Write your full Terms and Conditions here. Supports formatting (bold, italic, lists, etc.).
+    </small>
+</div>
 
         <div class="mt-5 text-end action-buttons">
             <button type="submit" class="btn btn-primary d-none" id="saveBtn">
@@ -79,62 +106,127 @@
 </div>
 
 <script>
-// Elements
-const editBtn       = document.getElementById("editBtn");
-const saveBtn       = document.getElementById("saveBtn");
-const cancelBtn     = document.getElementById("cancelBtn");
-const saveSpinner   = document.getElementById("saveSpinner");
+// ========== QUILL EDITOR INITIALIZATION ==========
+let quill;
+
+function initQuill(initialContent = '') {
+    if (quill) {
+        quill.destroy();
+    }
+    
+    quill = new Quill('#quillEditor', {
+        theme: 'snow',
+        placeholder: 'Enter terms and conditions here...',
+        modules: {
+            toolbar: [
+                [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                ['bold', 'italic', 'underline', 'strike'],
+                ['blockquote', 'code-block'],
+                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                [{ 'indent': '-1'}, { 'indent': '+1' }],
+                [{ 'align': [] }],
+                ['link', 'image'],
+                ['clean']
+            ]
+        }
+    });
+    
+    if (initialContent) {
+        quill.clipboard.dangerouslyPasteHTML(initialContent);
+    }
+}
+
+// ========== DOM ELEMENTS ==========
+const editBtn = document.getElementById("editBtn");
+const saveBtn = document.getElementById("saveBtn");
+const cancelBtn = document.getElementById("cancelBtn");
+const saveSpinner = document.getElementById("saveSpinner");
 const termsDisplay = document.getElementById("termsDisplay");
 const termsEditArea = document.getElementById("termsEditArea");
-const termsTextarea = document.getElementById("termsTextarea");
 
-// Enter edit mode
-editBtn.onclick = () => {
+// ========== ENTER EDIT MODE ==========
+editBtn.onclick = function() {
+    // Get current content
+    const currentContent = termsDisplay.innerHTML;
+    
+    // Hide display, show editor
     termsDisplay.classList.add("d-none");
     termsEditArea.classList.remove("d-none");
-    termsTextarea.disabled = false;
+    
+    // Initialize Quill with current content
+    let cleanContent = currentContent;
+    if (cleanContent === 'No privacy terms has been added yet.' || 
+        cleanContent.trim() === '' || 
+        cleanContent === 'No privacy terms has been added yet.') {
+        cleanContent = '';
+    }
+    
+    if (quill) {
+        quill.clipboard.dangerouslyPasteHTML(cleanContent);
+    } else {
+        initQuill(cleanContent);
+    }
+    
+    // Toggle buttons
     saveBtn.classList.remove("d-none");
     cancelBtn.classList.remove("d-none");
     editBtn.classList.add("d-none");
 };
 
-// Cancel – just reload
-cancelBtn.onclick = () => location.reload();
+// ========== CANCEL ==========
+cancelBtn.onclick = function() {
+    location.reload();
+};
 
-// Form submit with AJAX
+// ========== SAVE ==========
 document.getElementById("termsForm").onsubmit = function(e) {
     e.preventDefault();
-
-    const content = termsTextarea.value.trim();
-    if (!content) {
-        alert("Please enter the  Terms and Conditions content.");
+    
+    if (!quill) {
+        alert("Editor not initialized.");
         return;
     }
-
+    
+    const content = quill.root.innerHTML.trim();
+    
+    if (!content || content === '<p><br></p>') {
+        alert("Please enter the Terms and Conditions content.");
+        return;
+    }
+    
     saveBtn.disabled = true;
     saveSpinner.classList.remove("d-none");
-
-    const formData = new FormData(this);
-
+    
+    const formData = new FormData();
+    formData.append('content', content);
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+    
     fetch("{% url 'save_terms_conditions' client.id %}", {
         method: "POST",
         body: formData,
         headers: {
-            "X-CSRFToken": "{{ csrf_token }}"
+            "X-Requested-With": "XMLHttpRequest"
         }
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Update display without reload (optional)
-            termsDisplay.innerHTML = data.content ? data.content.replace(/\n/g, '<br>') : '';
-            alert(data.message);
-            location.reload();  // or remove this line if you want smooth UX
+            // Update display with formatted content
+            termsDisplay.innerHTML = data.content || content;
+            alert(data.message || "Terms saved successfully!");
+            
+            // Switch back to display mode
+            termsDisplay.classList.remove("d-none");
+            termsEditArea.classList.add("d-none");
+            saveBtn.classList.add("d-none");
+            cancelBtn.classList.add("d-none");
+            editBtn.classList.remove("d-none");
         } else {
-            alert(data.message + (data.errors?.content ? "\n" + data.errors.content : ""));
+            alert(data.message || "Failed to save. Please try again.");
         }
     })
-    .catch(() => {
+    .catch(error => {
+        console.error("Error:", error);
         alert("Something went wrong. Please try again.");
     })
     .finally(() => {
@@ -142,6 +234,25 @@ document.getElementById("termsForm").onsubmit = function(e) {
         saveSpinner.classList.add("d-none");
     });
 };
+
+// ========== KEYBOARD SHORTCUTS ==========
+document.addEventListener('keydown', function(e) {
+    // Ctrl+S to save
+    if (e.ctrlKey && e.key === 's') {
+        e.preventDefault();
+        if (!saveBtn.classList.contains('d-none')) {
+            document.getElementById('termsForm').dispatchEvent(new Event('submit'));
+        }
+    }
+});
+
+// Initialize Quill on page load (hidden initially)
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize with empty content - editor will be shown when edit mode is activated
+    initQuill('');
+});
+
+console.log('Quill editor initialized');
 </script>
 
 {% endblock %}
